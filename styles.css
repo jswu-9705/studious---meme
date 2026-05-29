@@ -1571,21 +1571,20 @@ a { color: inherit; text-decoration: none; }
 
 /* 切换动画 */
 .intro.exiting {
-  animation: introExit 0.32s var(--easing) forwards;
+  animation: introExit 0.26s var(--easing) forwards;
 }
 @keyframes introExit {
   to {
     opacity: 0;
-    transform: scale(1.05);
-    filter: blur(20px);
+    transform: scale(1.04);
   }
 }
 .portfolio.entering {
-  animation: portEnter 1s var(--easing) forwards;
+  animation: portEnter 0.5s var(--easing) forwards;
 }
 @keyframes portEnter {
-  from { opacity: 0; transform: translateY(40px); filter: blur(20px); }
-  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 /* 入场动画结束后必须清除 transform/filter，否则 .portfolio 会成为 .port-nav 的 containing block，
    导致 position:fixed 的顶部 bar 跟着内容滚动而不是贴在视口顶部 */
@@ -2555,8 +2554,12 @@ body.portfolio-active .cursor-ring { display: none; }
   gap: 4px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.10);
+  /* 与顶部导航 .port-nav 同款 Apple 磨砂效果 */
+  background: rgba(10, 10, 14, 0.62);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
   border: 0.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02), 0 8px 24px rgba(0, 0, 0, 0.18);
   color: #fff;
   font-family: 'PingFang SC', 'Space Grotesk', sans-serif;
   z-index: 2;

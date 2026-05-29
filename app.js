@@ -221,11 +221,12 @@ function enterPortfolio() {
   _entering = true;
   // 立即给按钮加按下态（变白），保证移动端 pointerdown 后能看到白色反馈
   if (enterBtn) enterBtn.classList.add('is-pressed');
-  // 极短延迟(120ms)：既让白色按下态渲染出来，又几乎无感知，随后立即切换
-  setTimeout(doEnterPortfolio, 120);
+  // 立即开始 intro 淡出动画（保留淡出过渡效果）
+  intro.classList.add('exiting');
+  // 等淡出动画播放（260ms）后再切换到作品集页 —— 淡出可见但很快
+  setTimeout(doEnterPortfolio, 260);
 }
 function doEnterPortfolio() {
-  intro.classList.add('exiting');
   intro.hidden = true;
   portfolio.hidden = false;
   document.body.classList.add('portfolio-active');
@@ -1435,11 +1436,13 @@ setInterval(tickClock, 1000);
     dragging = false;
     lbStage.dataset.dragging = 'false';
     if (!wasDragging) {
-      // 单击图片：1× ↔ 2× 切换
+      // 单击图片：1× ↔ 2× 切换；单击图片以外的空白：关闭预览
       const onImg = e.target === lbImg;
       if (onImg) {
         if (scale > 1.001) reset();
         else zoomAt(e.clientX, e.clientY, 2);
+      } else {
+        close();
       }
     }
   });
@@ -1450,14 +1453,19 @@ setInterval(tickClock, 1000);
   let pinchStartDist = 0, pinchStartScale = 1, pinchCx = 0, pinchCy = 0;
   const dist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
   const mid  = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
+  let touchMoved = false;        // 本次触摸是否发生过移动（区分单击 vs 拖拽/缩放）
+  let touchStartTarget = null;   // 触摸起点的目标元素
   lbStage.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
       touchMode = 'pan';
+      touchMoved = false;
+      touchStartTarget = e.target;
       panStartX = e.touches[0].clientX;
       panStartY = e.touches[0].clientY;
       panTxStart = tx; panTyStart = ty;
     } else if (e.touches.length === 2) {
       touchMode = 'pinch';
+      touchMoved = true;   // 双指必然算交互，不触发单击关闭
       pinchStartDist = dist(e.touches[0], e.touches[1]);
       pinchStartScale = scale;
       const m = mid(e.touches[0], e.touches[1]);
@@ -1466,8 +1474,11 @@ setInterval(tickClock, 1000);
   }, { passive: true });
   lbStage.addEventListener('touchmove', (e) => {
     if (touchMode === 'pan' && e.touches.length === 1) {
-      tx = panTxStart + (e.touches[0].clientX - panStartX);
-      ty = panTyStart + (e.touches[0].clientY - panStartY);
+      const mdx = e.touches[0].clientX - panStartX;
+      const mdy = e.touches[0].clientY - panStartY;
+      if (Math.hypot(mdx, mdy) > 6) touchMoved = true;   // 超阈值算移动
+      tx = panTxStart + mdx;
+      ty = panTyStart + mdy;
       apply();
       e.preventDefault();
     } else if (touchMode === 'pinch' && e.touches.length === 2) {
@@ -1476,7 +1487,13 @@ setInterval(tickClock, 1000);
       e.preventDefault();
     }
   }, { passive: false });
-  lbStage.addEventListener('touchend', () => { touchMode = null; });
+  lbStage.addEventListener('touchend', (e) => {
+    // 单击（未移动）且点在图片以外的空白 → 关闭预览
+    if (touchMode === 'pan' && !touchMoved && touchStartTarget !== lbImg) {
+      close();
+    }
+    touchMode = null;
+  });
 
   apply();
 })();
