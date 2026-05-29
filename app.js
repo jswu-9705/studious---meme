@@ -219,42 +219,47 @@ let _entering = false;
 function enterPortfolio() {
   if (_entering) return;      // 防重入：pointerdown/click 双触发或多次点击只生效一次
   _entering = true;
+  // 立即给按钮加按下态（变白），保证移动端 pointerdown 后能看到白色反馈
+  if (enterBtn) enterBtn.classList.add('is-pressed');
+  // 极短延迟(120ms)：既让白色按下态渲染出来，又几乎无感知，随后立即切换
+  setTimeout(doEnterPortfolio, 120);
+}
+function doEnterPortfolio() {
   intro.classList.add('exiting');
+  intro.hidden = true;
+  portfolio.hidden = false;
+  document.body.classList.add('portfolio-active');
+  portfolio.classList.add('entering');
+  portfolio.classList.remove('entered-done');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  // 触发顶部 banner 动画（每次进入都重新跑）
+  portfolio.classList.remove('entered');
+  // 清空 inline 字号让 CSS budget 重新生效（之前 fit 可能留下了小值）
+  const title = document.querySelector('.big-title');
+  if (title) title.style.fontSize = '';
+  // 强制 reflow 让 animation-play-state 重置生效
+  void portfolio.offsetWidth;
+  requestAnimationFrame(() => {
+    portfolio.classList.add('entered');
+    // 在显示并 reflow 后再做兜底 fit（仅在真的溢出时缩）
+    requestAnimationFrame(() => fitBigTitle());
+    // 大字逐个揭幕：JS → WU → DESIGN → SPACE，顺序由 JS 循环严格保证
+    startWordWipe();
+    // 启动 Stack 入场 + 循环（入场延迟在 CSS 中通过 data-enter 控制）
+    startTsCycle();
+  });
+  // 入场动画结束后清除 entering（避免 transform/filter 残留破坏 .port-nav 的 fixed 定位）
   setTimeout(() => {
-    intro.hidden = true;
-    portfolio.hidden = false;
-    document.body.classList.add('portfolio-active');
-    portfolio.classList.add('entering');
-    portfolio.classList.remove('entered-done');
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    // 触发顶部 banner 动画（每次进入都重新跑）
-    portfolio.classList.remove('entered');
-    // 清空 inline 字号让 CSS budget 重新生效（之前 fit 可能留下了小值）
-    const title = document.querySelector('.big-title');
-    if (title) title.style.fontSize = '';
-    // 强制 reflow 让 animation-play-state 重置生效
-    void portfolio.offsetWidth;
-    requestAnimationFrame(() => {
-      portfolio.classList.add('entered');
-      // 在显示并 reflow 后再做兜底 fit（仅在真的溢出时缩）
-      requestAnimationFrame(() => fitBigTitle());
-      // 大字逐个揭幕：JS → WU → DESIGN → SPACE，顺序由 JS 循环严格保证
-      startWordWipe();
-      // 启动 Stack 入场 + 循环（入场延迟在 CSS 中通过 data-enter 控制）
-      startTsCycle();
-    });
-    // 入场动画结束后清除 entering（避免 transform/filter 残留破坏 .port-nav 的 fixed 定位）
-    setTimeout(() => {
-      portfolio.classList.remove('entering');
-      portfolio.classList.add('entered-done');
-    }, 1100);
-  }, 220);
+    portfolio.classList.remove('entering');
+    portfolio.classList.add('entered-done');
+  }, 1100);
 }
 
 function backToIntro() {
   stopTsCycle();
   resetWordWipe();
   _entering = false;          // 重置入场锁，允许再次进入
+  if (enterBtn) enterBtn.classList.remove('is-pressed');  // 清除按钮按下态
   portfolio.classList.remove('entering');
   portfolio.classList.remove('entered');
   portfolio.classList.remove('entered-done');

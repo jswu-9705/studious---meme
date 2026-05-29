@@ -592,7 +592,8 @@ a { color: inherit; text-decoration: none; }
   color: #000;
 }
 /* 移动端按下态：触屏没有 hover，用 :active 让按下时也变白（与桌面 hover 视觉一致） */
-.enter-btn:active {
+.enter-btn:active,
+.enter-btn.is-pressed {
   background: #fff;
   color: #000;
   transform: scale(0.97);
@@ -2379,6 +2380,12 @@ body.portfolio-active .cursor-ring { display: none; }
   .pd-next-item:hover .pd-next-cta-arrow {
     transform: translateX(3px);
   }
+}
+/* 移动端按下态：点击卡片时探索按钮变白（:active 触屏按下即生效、松开即消失，不粘滞） */
+.pd-next-item:active .pd-next-cta {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
 }
 
 /* 与主页 .port-foot 统一：相同 padding，左对齐单行版权
