@@ -1579,12 +1579,10 @@ a { color: inherit; text-decoration: none; }
     transform: scale(1.04);
   }
 }
+/* 作品集页进入：不再做整页淡入动画（避免淡出后还要再等 0.5s 淡入的"停顿感"）。
+   淡出结束即直接呈现完整主页，页内的大字揭幕/缩略图坠落等动效照常由 JS 触发。 */
 .portfolio.entering {
-  animation: portEnter 0.5s var(--easing) forwards;
-}
-@keyframes portEnter {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  opacity: 1;
 }
 /* 入场动画结束后必须清除 transform/filter，否则 .portfolio 会成为 .port-nav 的 containing block，
    导致 position:fixed 的顶部 bar 跟着内容滚动而不是贴在视口顶部 */
@@ -2380,8 +2378,9 @@ body.portfolio-active .cursor-ring { display: none; }
     transform: translateX(3px);
   }
 }
-/* 移动端按下态：点击卡片时探索按钮变白（:active 触屏按下即生效、松开即消失，不粘滞） */
-.pd-next-item:active .pd-next-cta {
+/* 移动端按下态：点击卡片时探索按钮变白（:active 触屏按下即生效；.is-pressed 由 JS 在跳转前加，保证切页前白色已渲染） */
+.pd-next-item:active .pd-next-cta,
+.pd-next-cta.is-pressed {
   background: var(--ink);
   color: var(--bg);
   border-color: var(--ink);

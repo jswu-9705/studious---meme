@@ -784,6 +784,20 @@ const allProjects = Array.from(document.querySelectorAll('.card[data-project]'))
   tags:      Array.from(c.querySelectorAll('.tags span')).map(s => s.textContent.trim()),
 }));
 
+// 点击"猜你想看"卡片：先让探索按钮立即变白（跟手反馈），约120ms 后再切到下一个项目详情
+let _goingNext = false;
+function goNextProject(item) {
+  if (_goingNext || !item || !item.dataset.project) return;
+  _goingNext = true;
+  const cta = item.querySelector('.pd-next-cta');
+  if (cta) cta.classList.add('is-pressed');
+  setTimeout(() => {
+    openProjectDetail(item.dataset.project);
+    projectDetail.scrollTo({ top: 0, behavior: 'smooth' });
+    _goingNext = false;
+  }, 120);
+}
+
 function openProjectDetail(projectId) {
   const meta = allProjects.find(p => p.id === projectId);
   if (!meta || !projectDetail) return;
@@ -923,12 +937,11 @@ function openProjectDetail(projectId) {
     item.addEventListener('mouseleave', () => {
       item.style.setProperty('--edge-proximity', '0');
     });
-    // 点击切换详情（直接监听）
+    // 点击切换详情：先让探索按钮立即变白（跟手反馈），再切下一个界面
     item.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      openProjectDetail(item.dataset.project);
-      projectDetail.scrollTo({ top: 0, behavior: 'smooth' });
+      goNextProject(item);
     });
   });
   // 兜底：在 pdContinueGrid 容器上事件委托（捕获阶段，最早命中），
@@ -938,8 +951,7 @@ function openProjectDetail(projectId) {
       const item = e.target.closest && e.target.closest('.pd-next-item');
       if (item && item.dataset.project) {
         e.preventDefault();
-        openProjectDetail(item.dataset.project);
-        projectDetail.scrollTo({ top: 0, behavior: 'smooth' });
+        goNextProject(item);
       }
     }, true);
     pdContinueGrid._delegateBound = true;
