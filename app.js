@@ -248,7 +248,7 @@ function enterPortfolio() {
       portfolio.classList.remove('entering');
       portfolio.classList.add('entered-done');
     }, 1100);
-  }, 700);
+  }, 220);
 }
 
 function backToIntro() {

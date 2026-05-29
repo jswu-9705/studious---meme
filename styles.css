@@ -591,7 +591,10 @@ a { color: inherit; text-decoration: none; }
   background: #fff;
   color: #000;
 }
+/* 移动端按下态：触屏没有 hover，用 :active 让按下时也变白（与桌面 hover 视觉一致） */
 .enter-btn:active {
+  background: #fff;
+  color: #000;
   transform: scale(0.97);
 }
 .btn-text { display: inline-block; }
@@ -1567,7 +1570,7 @@ a { color: inherit; text-decoration: none; }
 
 /* 切换动画 */
 .intro.exiting {
-  animation: introExit 0.9s var(--easing) forwards;
+  animation: introExit 0.32s var(--easing) forwards;
 }
 @keyframes introExit {
   to {
