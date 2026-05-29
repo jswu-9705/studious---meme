@@ -637,24 +637,19 @@ a { color: inherit; text-decoration: none; }
   gap: 36px;
 }
 
-/* 大标题：两行，使用 Druk Wide（fallback Archivo Black）
-   关键：font-size 用 min(...) 直接根据 "屏宽减 padding" 算出最大字号，撑开后永远不溢出 */
+/* 大标题：横向两行布局（v173 之前的版本）
+   行 1：JS （间隙） WU
+   行 2：DESIGN （间隙） SPACE
+   缩略图 .thumb-stack 是 .big-title 的 absolute 子元素，居中夹在两行之间
+   - 单边切图宽度 = (100vw - 2*side-pad - thumb-w - 2*thumb-gap) / 2
+   - 中间间隙（.word-gap）默认窄，缩略图坠落开始时通过类切换到完整宽度 */
 .big-title {
-  /* 切图布局规则：
-     - 左右两边固定 24px 内边距
-     - 中间缩略图宽度按屏宽的 0.32 比例（≥520px），高度按 16/9 比例
-     - 缩略图距离左右两边的英文切图固定 24px
-     - 英文切图填满剩余空间，跟随屏幕宽度变宽
-     - 切图宽高比 4.741:1，所以单行高度 = 每边宽度 / 4.741
-     - 中缝（--mid-w）默认 16px（窄），缩略图坠落开始时（2.55s）切到 32vw + 48px,
-       由 .thumb-pushed class 触发，做出 "缩略图把英文挤开" 的效果（1.6s 慢动画）
-     - <520px 由媒体查询另行覆盖（缩略图改纵向 clamp，宽度跟随视口） */
   --side-pad: 24px;
   --thumb-w: 32vw;
   --thumb-gap: 24px;
-  --mid-narrow: 16px;
-  --mid-wide: calc(var(--thumb-w) + var(--thumb-gap) * 2);
-  --mid-w: var(--mid-narrow);
+  --gap-narrow: 16px;
+  --gap-wide: calc(var(--thumb-w) + var(--thumb-gap) * 2);
+  --word-gap-w: var(--gap-narrow);
   position: relative;
   width: 100%;
   padding: 0 var(--side-pad);
@@ -666,90 +661,74 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   z-index: 8;
   line-height: 1;
+  display: block;
 }
-/* 缩略图坠落同步：把中缝从 16px 推到 512px，用与坠落一致的曲线/时长 */
+/* 两行 .big-row 的间距 */
+.big-row + .big-row {
+  margin-top: 0.04em;
+}
+/* 缩略图坠落同步：把中间间隙从 16px 推到完整宽度，实现"缩略图把英文挤开"的效果 */
 .big-title.thumb-pushed {
-  --mid-w: var(--mid-wide);
+  --word-gap-w: var(--gap-wide);
 }
-.big-row {
-  display: grid;
-  /* 左 1fr | 中缝 --mid-w | 右 1fr */
-  grid-template-columns: 1fr var(--mid-w) 1fr;
-  align-items: center;
-  white-space: nowrap;
-  position: relative;
-  gap: 0;
-  justify-content: center;
-  /* grid-template-columns 不能被直接 transition，但 var(--mid-w) 的两端都是
-     固定宽度，浏览器会平滑过渡（Chrome/Safari 已支持 grid track 渐变）
-     展开动画：1.6s + ease-out，让 "挤开" 感觉更优雅、更克制 */
-  transition: grid-template-columns 1.6s cubic-bezier(.22, 1, .36, 1);
-}
-/* 两行文字都在缩略图上方（文字盖住缩略图） */
-.big-row-1 { z-index: 12; }
-.big-row-2 { z-index: 12; }
-.big-row + .big-row { margin-top: 0.04em; }
 
-/* 两行的左右两段 word（撑开容器 + 揭幕） */
+/* 单行（JS WU 或 DESIGN SPACE）：左 word | 间隙 | 右 word */
+.big-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  position: relative;
+  z-index: 12;        /* 文字盖在缩略图之上 */
+}
+
+/* 中间间隙：宽度跟随 --word-gap-w，带过渡 */
+.word-gap {
+  display: block;
+  flex: 0 0 var(--word-gap-w);
+  width: var(--word-gap-w);
+  transition: flex-basis 1.6s cubic-bezier(.22, 1, .36, 1),
+              width 1.6s cubic-bezier(.22, 1, .36, 1);
+}
+
+/* 单个 word（含 PNG 切图）：带揭幕动画
+   - 单边宽度 = (100% - --word-gap-w) / 2，由 flex 自动撑满，不留缝
+   - 这样无论中缝是 narrow（16px）还是 wide（thumb-w + 2*gap），左右两侧文字始终撑满剩余空间
+   - 视觉上：中缝 narrow 时大字占满几乎整行；中缝 wide 时大字被推到两边，缩略图夹在中间 */
 .big-row .word {
-  display: inline-block;
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
   position: relative;
   opacity: 0;
   clip-path: inset(0 100% 0 0);
   -webkit-clip-path: inset(0 100% 0 0);
   will-change: clip-path, opacity;
-  animation: wordWipe 0.55s linear forwards;
-  animation-play-state: paused;
-  overflow: visible;        /* DESIGN/SPACE 略宽于 col-w 时不裁剪 */
+  overflow: visible;
 }
-.big-row .word-l {
-  justify-self: stretch;  /* 撑满左列 1fr */
-  text-align: right;
-  min-width: 0;
-}
-.big-row .word-r {
-  justify-self: stretch;  /* 撑满右列 1fr */
-  text-align: left;
-  min-width: 0;
-}
-/* 中缝：固定 8px+360px+8px = 376px（由 grid-template-columns 控制），此元素仅占位 */
-.big-row .word-gap {
-  width: 100%;
-  height: 1px;
-  align-self: center;
+/* 左 word 偏右贴中缝、右 word 偏左贴中缝 */
+.big-row .word-l { text-align: right; }
+.big-row .word-r { text-align: left;  }
+
+/* 4 段 word 的揭幕：改为 JS 逐个加 .wipe-go 触发，顺序由 app.js 的循环严格保证。
+   不再依赖 CSS animation-delay 级联（曾被 animation 简写 + 选择器优先级反复覆盖导致 4 字同时动）。
+   CSS 只负责：默认隐藏 + 加了 .wipe-go 就从左到右匀速揭幕。 */
+.big-row .word.wipe-go {
+  animation-name: wordWipe;
+  animation-duration: 0.55s;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
 }
 
-/* 4 段 word 的揭幕顺序：JS → WU → DESIGN → SPACE，每段间隔 0.5s 让顺序清晰 */
-.big-row-1 .word-l { animation-delay: 0.30s; }   /* JS     0.30 → 0.85 */
-.big-row-1 .word-r { animation-delay: 0.80s; }   /* WU     0.80 → 1.35 */
-.big-row-2 .word-l { animation-delay: 1.30s; }   /* DESIGN 1.30 → 1.85 */
-.big-row-2 .word-r { animation-delay: 1.80s; }   /* SPACE  1.80 → 2.35 */
-
-/* 全程线性 0% → 100% 透明度变化 + 揭幕 */
+/* 揭幕：从左到右 clip-path 展开 + opacity 0→1 */
 @keyframes wordWipe {
   0%   { opacity: 0;    clip-path: inset(0 100% 0 0); -webkit-clip-path: inset(0 100% 0 0); }
   100% { opacity: 1;    clip-path: inset(0 0 0 0);    -webkit-clip-path: inset(0 0 0 0); }
 }
 
-/* entered 时缩略图开始坠落（2.55s）；中缝固定 376px，不再 push 撑开 */
-
-/* 字符不再单独 reveal（由父级 word 整体揭幕） */
-.big-row .ch {
-  display: inline-block;
-}
-.big-row .ch.sp { width: 0.3em; }
-.big-row .ch.serif {
-  font-family: 'Instrument Serif', 'Times New Roman', serif;
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  margin: 0 -0.05em 0 -0.02em;
-}
-
-/* 切图替代字体：每个 .word 内放一张 PNG
-   - 宽度 = 100%（撑满 1fr 列），随屏宽变化
-   - 高度按图片自身比例 4.741:1 自动计算
-   - zuo-shang/zuo-xia 文字偏右（贴近中缝），you-shang/you-xia 文字偏左（贴近中缝） */
+/* 切图替代字体：每个 .word 内放一张 PNG */
 .big-row .word-img {
   display: block;
   width: 100%;
@@ -759,15 +738,15 @@ a { color: inherit; text-decoration: none; }
   pointer-events: none;
 }
 
-/* 缩略图堆叠 —— React Bits Stack 风格：所有卡片可见，顶卡发回底部循环
-   文字层 z-index: 12，缩略图 z-index: 6，文字覆盖在缩略图上方 */
+/* 缩略图堆叠 —— absolute 居中夹在两行之间
+   坠落起点在容器顶部之外（translateY(-220%)），文字层 z-index: 12 在其之上 */
 .thumb-stack {
   position: absolute;
-  top: 50%;
   left: 50%;
+  top: 50%;
   transform: translate(-50%, -50%);
-  width: 32vw;             /* 屏宽的 0.32，与 grid 中间列保持一致 */
-  aspect-ratio: 16 / 9;    /* 高度按比例 */
+  width: var(--thumb-w);
+  aspect-ratio: 16 / 9;
   pointer-events: none;
   z-index: 6;
   perspective: 600px;
@@ -814,22 +793,19 @@ a { color: inherit; text-decoration: none; }
 .thumb-stack.ts-stack-ready .ts-card[data-idx="2"] { transform: translateY(0) rotateZ(4deg)  scale(0.94); z-index: 3; }
 .thumb-stack.ts-stack-ready .ts-card[data-idx="3"] { transform: translateY(0) rotateZ(0deg)  scale(1.00); z-index: 4; }
 
-/* 入场延迟：依次坠落 */
-.thumb-stack.ts-stack-ready .ts-card[data-enter="0"] { transition-delay: 2.55s; }
-.thumb-stack.ts-stack-ready .ts-card[data-enter="1"] { transition-delay: 2.70s; }
-.thumb-stack.ts-stack-ready .ts-card[data-enter="2"] { transition-delay: 2.85s; }
-.thumb-stack.ts-stack-ready .ts-card[data-enter="3"] { transition-delay: 3.00s; }
+/* 入场延迟：紧贴 SPACE 揭幕完成（2.50s）后坠落，与 JS 中 2.50s 中缝撑开（thumb-pushed）完全同步 */
+.thumb-stack.ts-stack-ready .ts-card[data-enter="0"] { transition-delay: 2.50s; }
+.thumb-stack.ts-stack-ready .ts-card[data-enter="1"] { transition-delay: 2.58s; }
+.thumb-stack.ts-stack-ready .ts-card[data-enter="2"] { transition-delay: 2.66s; }
+.thumb-stack.ts-stack-ready .ts-card[data-enter="3"] { transition-delay: 2.74s; }
 
 /* 循环阶段：清除入场 delay，使用统一过渡 */
 .thumb-stack.ts-cycling .ts-card { transition-delay: 0s; }
 
-/* 大字下方副标 */
+/* 大字下方副标
+   旧布局：.big-title 高度由文字行撑开，缩略图 absolute 不参与父高度
+   margin-top 需较大（72px）以拉远小字与视觉上"在两行间夹层"的缩略图底部 */
 .hero-tagline {
-  /* 距离缩略图底部 36px：
-     .thumb-stack 是 .big-title 的子元素，绝对居中。
-     缩略图底部相对于 big-title 第二行底部的偏移与字号/缩略图宽度相关，
-     视觉测试桌面端缩略图底部比英文基线略低约 30-40px，
-     所以 margin-top 设为 36 + 缓冲，让小字距缩略图底部 ~36px */
   margin-top: 72px;
   text-align: center;
   /* 大屏放大：从固定 15px 改为 clamp，1920+ 可达 22px */
@@ -843,7 +819,7 @@ a { color: inherit; text-decoration: none; }
   opacity: 0;
   transform: translateY(12px);
   animation: fadeUp 0.8s cubic-bezier(.2,.8,.2,1) forwards;
-  animation-delay: 3.3s;
+  animation-delay: 3.5s;
   animation-play-state: paused;
 }
 .hero-tagline span { display: block; }
@@ -852,8 +828,8 @@ a { color: inherit; text-decoration: none; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* 触发动画：当作品集页处于 entered 状态时播放 */
-.portfolio.entered .big-row .word,
+/* 触发动画：大字揭幕由 app.js 逐个加 .wipe-go 控制（见上方 .word.wipe-go）。
+   这里只负责缩略图坠落与副标的播放触发。 */
 .portfolio.entered .ts-card,
 .portfolio.entered .hero-tagline {
   animation-play-state: running;
@@ -939,18 +915,34 @@ a { color: inherit; text-decoration: none; }
   gap: 8px;
   font-size: 13px;
   font-family: 'JetBrains Mono', monospace;
+  /* 绝对居中：以 .port-nav(fixed) 为基准在视口正中，与左侧 logo / 右侧 Back 宽度无关，
+     彻底解决"两侧不等宽导致 tab 没在正中"的问题 */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
 }
 .nav-links a {
   padding: 8px 16px;
   border-radius: 999px;
   color: var(--ink-dim);
   transition: color 0.3s var(--easing);
+  /* 关键：保证 hit-test 始终命中 <a>，子元素不吞 click */
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
 }
-.nav-links a:hover,
-.nav-links a.active:hover { color: #036AFF; }
-.nav-links a.active { color: var(--ink-dim); background: transparent; }
+.nav-links a:hover { color: #ffffff; }
+.nav-links a.active { color: #ffffff; background: transparent; }
+.nav-links a.active:hover { color: #ffffff; }
 .back-btn {
-  /* 配合 .liquid-glass：background / border / box-shadow 由 .liquid-glass 接管 */
+  /* 背景半透明：默认 10% → hover 15%（去掉液态玻璃，回归朴素半透明） */
+  background: rgba(255, 255, 255, 0.10);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
   color: var(--ink);
   padding: 10px 18px;
   border-radius: 999px;
@@ -959,8 +951,7 @@ a { color: inherit; text-decoration: none; }
   transition: transform 0.3s var(--easing), background 0.3s var(--easing);
 }
 .back-btn:hover {
-  /* 玻璃感保留 —— 默认 0.1 → hover 0.2 微亮 */
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 
@@ -1552,17 +1543,16 @@ a { color: inherit; text-decoration: none; }
 
 .port-foot {
   max-width: 1400px;
-  margin: 60px auto 0;
+  margin: 160px auto 0;
   padding: 30px 40px 40px;
   border-top: 1px solid var(--line);
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.15em;
+  font-family: 'PingFang SC', 'PingFang TC', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.04em;
   color: var(--ink-dim);
-  text-transform: uppercase;
 }
 
 /* 切换动画 */
@@ -1655,41 +1645,52 @@ body.portfolio-active .cursor-ring { display: none; }
   .back-btn { padding: 6px 12px; font-size: 10px; }
 }
 
-/* ====== ≤520px：纵向布局（主标题 → 缩略图 → 小字） ======
-   桌面端：缩略图绝对居中夹在 JS WU / DESIGN SPACE 中间
-   小屏：把 .big-title 改成 flex 列，缩略图脱离绝对定位排到两行标题下方
-   并把 .big-row 的 grid 中间预留列收掉，让英文切图占满整行 */
-@media (max-width: 520px) {
-  /* 标题距离顶部 bar 200px：
-     1. .portfolio padding-top 设 0（不再为 nav 留位）
-     2. .port-banner 取消 flex 垂直居中（否则 padding-top 不生效，内容会被推到中央）
-     3. padding-top = nav 高度 (55px) + 想要的间距 (200px) = 255px */
+/* ====== ≤680px：英文紧凑两行 + 缩略图位于英文下方 ======
+   桌面端：两行 .big-row，缩略图 absolute 夹在两行之间
+   小屏（≤680px）需求（截图右侧）：
+   - JS WU / DESIGN SPACE 紧凑两行（中缝固定窄，不被 thumb-pushed 影响）
+   - 缩略图脱离两行夹层，作为独立块显示在两行下方居中
+   - 副标小字位于缩略图下方
+   实现方式：
+   - .big-title 改为 flex column；.thumb-stack 从 absolute 改回 relative，作为 flex 第三个子项
+   - .big-title.thumb-pushed 在小屏不生效（中缝保持窄） */
+@media (max-width: 680px) {
+  /* 标题距离顶部 bar 适当留白 */
   .portfolio { padding-top: 0 !important; }
   .port-banner {
     justify-content: flex-start !important;
-    padding-top: 255px !important;
+    padding-top: 200px !important;
+    gap: 32px;
   }
+  /* 小屏：参数缩小 */
   .big-title {
-    --side-pad: 24px;
-    display: flex;
+    --side-pad: 20px;
+    --thumb-w: clamp(220px, 70vw, 560px);
+    --thumb-gap: 0px;
+    --gap-narrow: 18px;
+    /* 改成 flex column：两行 .big-row + 缩略图 + (副标在外层) */
+    display: flex !important;
     flex-direction: column;
     align-items: center;
+    gap: 28px;
   }
-  /* 小屏下不再夹缩略图：把中间预留列收成 0，左右各占 1fr，两个 word 仍并列在同一行 */
-  .big-row {
-    grid-template-columns: 1fr 16px 1fr;
+  /* 中缝在小屏永远保持窄，不被 thumb-pushed 触发的 wide 推开 */
+  .big-title.thumb-pushed {
+    --word-gap-w: var(--gap-narrow);
   }
-  .big-row-1 { order: 1; }
-  .big-row-2 { order: 2; }
-  /* 缩略图脱离 absolute，按文档流排在两行标题之后 */
+  /* 两行紧凑（取消 .big-row + .big-row 的 margin-top，让 flex gap 接管） */
+  .big-row + .big-row { margin-top: 0; }
+  .big-title { gap: 0.04em; }
+  /* 缩略图：脱离 absolute，作为 flex 第三项排在两行下方居中。
+     此处 .big-title 的 flex gap 已被设为 0.04em，故上方间距由 thumb-stack 的 margin-top 主导 */
   .thumb-stack {
-    order: 3;
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
-    width: clamp(180px, 60vw, 320px);
-    margin-top: 48px;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: var(--thumb-w);
+    margin: 56px auto 0 !important;
+    align-self: center;
   }
   .hero-tagline {
     margin-top: 24px;
@@ -1891,7 +1892,9 @@ body.portfolio-active .cursor-ring { display: none; }
 .pd-back {
   display: inline-flex;
   align-items: center;
-  /* 配合 .liquid-glass：background / border / box-shadow 由 .liquid-glass 接管 */
+  /* 背景半透明：默认 10% → hover 15%（去掉液态玻璃，回归朴素半透明） */
+  background: rgba(255, 255, 255, 0.10);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
   color: var(--ink);
   padding: 10px 18px;
   border-radius: 999px;
@@ -1909,8 +1912,7 @@ body.portfolio-active .cursor-ring { display: none; }
   box-sizing: border-box;
 }
 .pd-back:hover {
-  /* 玻璃感保留 —— 默认 0.1 → hover 0.2 微亮 */
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 .pd-back-icon {
@@ -2052,14 +2054,43 @@ body.portfolio-active .cursor-ring { display: none; }
   border: 1px solid var(--line);
   background: #161616;
   display: block;
+  /* 未加载时用 16:9 骨架占位撑起高度（所有素材均为 wide 16:9），
+     避免图片塌缩成"一条条横线"。加载完成后由 JS 加 .loaded 解除 */
+  aspect-ratio: 16 / 9;
+}
+/* 骨架脉冲：灰色渐变左右扫光 */
+.pd-gallery .pd-photo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, #161616 30%, #242424 50%, #161616 70%);
+  background-size: 200% 100%;
+  animation: pdSkeleton 1.4s ease-in-out infinite;
+  z-index: 0;
+}
+/* 加载完成：解除骨架占位 + 隐藏脉冲 */
+.pd-gallery .pd-photo.loaded {
+  aspect-ratio: auto;
+}
+.pd-gallery .pd-photo.loaded::before {
+  display: none;
+}
+@keyframes pdSkeleton {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 .pd-gallery .pd-photo img {
   width: 100%;
   height: auto;
   object-fit: cover;
   display: block;
-  transition: transform 0.6s var(--easing);
+  position: relative;
+  z-index: 1;
+  /* 默认透明，加载完成后淡入，盖住骨架 */
+  opacity: 0;
+  transition: transform 0.6s var(--easing), opacity 0.5s ease;
 }
+.pd-gallery .pd-photo.loaded img { opacity: 1; }
 .pd-gallery .pd-photo:hover img { transform: scale(1.04); }
 
 /* —— 底部"继续预览"模块 —— */
@@ -2125,6 +2156,11 @@ body.portfolio-active .cursor-ring { display: none; }
   text-decoration: none;
   color: inherit;
   cursor: pointer;
+  /* 关键：确保跨屏幕/内核（特别是 iOS Safari + 触屏 + mask-image 装饰层）
+     hit-test 始终命中卡片本体，避免子元素装饰层吞掉 click */
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition: transform 0.5s var(--easing), border-color 0.5s var(--easing), box-shadow 0.5s var(--easing);
   position: relative;
   /* Border Glow CSS 变量（与首页 .card 完全一致） */
@@ -2270,6 +2306,8 @@ body.portfolio-active .cursor-ring { display: none; }
 .pd-next-cta {
   position: relative;
   z-index: 1;
+  /* 子元素全部透传 click 到卡片本体（卡片才是 <a>，由它统一处理跳转） */
+  pointer-events: none;
 }
 .pd-next-title {
   /* 与首页 .card-info h4 完全一致 */
@@ -2418,7 +2456,7 @@ body.portfolio-active .cursor-ring { display: none; }
   transition: none;  /* 拖拽中关闭过渡，跟手 */
 }
 
-/* 关闭按钮 —— 右上角，液态玻璃由 .liquid-glass 接管 */
+/* 关闭按钮 —— 右上角，背景半透明（去掉液态玻璃） */
 .lb-close {
   position: absolute;
   top: 24px;
@@ -2426,6 +2464,8 @@ body.portfolio-active .cursor-ring { display: none; }
   width: 40px;
   height: 40px;
   border-radius: 999px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -2435,8 +2475,7 @@ body.portfolio-active .cursor-ring { display: none; }
   z-index: 2;
 }
 .lb-close:hover {
-  /* 玻璃感保留 —— 默认 0.1 → hover 0.2 微亮 */
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   transform: scale(1.05);
 }
 
@@ -2479,7 +2518,7 @@ body.portfolio-active .cursor-ring { display: none; }
   pointer-events: none;
 }
 
-/* 底部工具栏 —— 用 .liquid-glass class 注入玻璃效果，下方仅保留布局相关 */
+/* 底部工具栏 —— 背景半透明（去掉液态玻璃，无 hover） */
 .lb-toolbar {
   position: absolute;
   left: 50%;
@@ -2490,6 +2529,8 @@ body.portfolio-active .cursor-ring { display: none; }
   gap: 4px;
   padding: 8px 14px;
   border-radius: 999px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 0.5px solid rgba(255, 255, 255, 0.18);
   color: #fff;
   font-family: 'PingFang SC', 'Space Grotesk', sans-serif;
   z-index: 2;

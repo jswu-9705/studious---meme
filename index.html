@@ -7,7 +7,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Archivo+Black&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles.css?v=134" />
+<link rel="stylesheet" href="./styles.css?v=155" />
+<!-- 预加载核心大字及缩略图，防止进入后由于网络延迟导致大字同时出现或坠落卡顿 -->
+<link rel="preload" href="https://i.postimg.cc/XvYqCXwq/zuo-shang.png" as="image" />
+<link rel="preload" href="https://i.postimg.cc/Twjsv24f/you-shang.png" as="image" />
+<link rel="preload" href="https://i.postimg.cc/T1GZK5Dn/zuo-xia.png" as="image" />
+<link rel="preload" href="https://i.postimg.cc/dtNxYx4r/you-xia.png" as="image" />
+<link rel="preload" href="https://i.postimg.cc/TwJwDGBg/04.jpg" as="image" />
+<link rel="preload" href="https://i.postimg.cc/qRVhK1RW/01.png" as="image" />
+<link rel="preload" href="https://i.postimg.cc/nccsqjFc/02.jpg" as="image" />
+<link rel="preload" href="https://i.postimg.cc/4xjmCWzg/03.jpg" as="image" />
 </head>
 <body>
   <div class="noise-overlay" aria-hidden="true"></div>
@@ -155,51 +164,54 @@
         <img class="logo-img" src="https://i.postimg.cc/rsTVVbm2/logo.png" alt="Jswu Logo" />
       </a>
       <nav class="nav-links">
-        <a href="#" id="navHome">Home</a>
-        <a href="#work" class="active">Work</a>
+        <a href="#" id="navHome" class="active">Home</a>
+        <a href="#" id="navText">Text</a>
+        <a href="#work" id="navWork">Work</a>
       </nav>
-      <button id="backBtn" class="back-btn liquid-glass" aria-label="返回">← Back</button>
+      <button id="backBtn" class="back-btn" aria-label="返回">← Back</button>
     </header>
 
     <!-- ====== 作品集 hero（大字 + 缩略图坠落动画） ====== -->
     <div class="port-banner">
       <h2 class="big-title" aria-label="JSWU DESIGN SPACE">
-        <span class="big-row big-row-1">
-          <span class="word word-l">
+        <!-- 第 1 行：JS （间隙） WU -->
+        <span class="big-row">
+          <span class="word word-l word-l-top">
             <img class="word-img" src="https://i.postimg.cc/XvYqCXwq/zuo-shang.png" alt="JS" />
           </span>
           <span class="word-gap" aria-hidden="true"></span>
-          <span class="word word-r">
+          <span class="word word-r word-r-top">
             <img class="word-img" src="https://i.postimg.cc/Twjsv24f/you-shang.png" alt="WU" />
           </span>
         </span>
-        <!-- 缩略图堆叠：从上方坠落（4 张，对称递增角度） -->
+        <!-- 第 2 行：DESIGN （间隙） SPACE -->
+        <span class="big-row">
+          <span class="word word-l word-l-bot">
+            <img class="word-img" src="https://i.postimg.cc/T1GZK5Dn/zuo-xia.png" alt="DESIGN" />
+          </span>
+          <span class="word-gap" aria-hidden="true"></span>
+          <span class="word word-r word-r-bot">
+            <img class="word-img" src="https://i.postimg.cc/dtNxYx4r/you-xia.png" alt="SPACE" />
+          </span>
+        </span>
+        <!-- 缩略图堆叠（absolute 居中夹在两行之间） -->
         <div class="thumb-stack" aria-hidden="true">
           <div class="ts-card ts-1" style="--img:url('https://i.postimg.cc/TwJwDGBg/04.jpg')"></div>
           <div class="ts-card ts-2" style="--img:url('https://i.postimg.cc/qRVhK1RW/01.png')"></div>
           <div class="ts-card ts-3" style="--img:url('https://i.postimg.cc/nccsqjFc/02.jpg')"></div>
           <div class="ts-card ts-4" style="--img:url('https://i.postimg.cc/4xjmCWzg/03.jpg')"></div>
         </div>
-        <span class="big-row big-row-2">
-          <span class="word word-l">
-            <img class="word-img" src="https://i.postimg.cc/T1GZK5Dn/zuo-xia.png" alt="DESIGN" />
-          </span>
-          <span class="word-gap" aria-hidden="true"></span>
-          <span class="word word-r">
-            <img class="word-img" src="https://i.postimg.cc/dtNxYx4r/you-xia.png" alt="SPACE" />
-          </span>
-        </span>
       </h2>
       <p class="hero-tagline">
-        <span>AI浪潮之下，思考与判断力是锚，让我们不随波逐流；想象与执行力是桨，让我们真正抵达彼岸。</span>
-        <span>前者愈发稀缺，后者决定高度。</span>
+        <span>2022–2026，我的设计轨迹像一条未取直的河流——遇过礁石，转过急弯，有时在暗夜中重绘图层到黎明。</span>
+        <span>所有曲折都成了独特纹理，而那份最初的 passion，始终是河底不灭的流光。</span>
       </p>
     </div>
 
     <!-- 首屏 hero（双栏布局）已移除：直接进入作品轮播 + 卡片 -->
 
     <!-- 滚动逐字渐显 + 行内图片在屏幕中线时撑开（一整段，浏览器自然换行） -->
-    <section class="scroll-reveal" aria-label="时代宣言">
+    <section class="scroll-reveal" id="text" aria-label="时代宣言">
       <p class="sr-text">
         <span class="srw">THINKING</span>
         <span class="srw">AND</span>
@@ -247,7 +259,7 @@
           <div class="card-thumb"><div class="card-art art-1" style="--img:url('https://i.postimg.cc/N0pv7XKr/01.jpg')"></div></div>
           <div class="card-info">
             <div class="card-row"><h4>2025 年下半年</h4></div>
-            <p>Next-gen operating system interface for spatial computing.</p>
+            <p>秒剪 App 的一些设计方案尝试和视觉的探索</p>
             <div class="tags"><span>UI/UX</span><span>System</span><span>Motion</span></div>
           </div>
         </article>
@@ -256,7 +268,7 @@
           <div class="card-thumb"><div class="card-art art-2" style="--img:url('https://i.postimg.cc/x8frgzpF/02.jpg')"></div></div>
           <div class="card-info">
             <div class="card-row"><h4>2025 年上半年</h4></div>
-            <p>A luminous identity system for an AI lighting startup.</p>
+            <p>记录微信读书与微信输入法的工作沉淀，新时代 AI 技术探索</p>
             <div class="tags"><span>Branding</span><span>Identity</span></div>
           </div>
         </article>
@@ -265,7 +277,7 @@
           <div class="card-thumb"><div class="card-art art-3" style="--img:url('https://i.postimg.cc/nL4w5LDw/03.jpg')"></div></div>
           <div class="card-info">
             <div class="card-row"><h4>2024 年下半年</h4></div>
-            <p>Re-imagining mobile payments with playful interactions.</p>
+            <p>微信输入法的工作沉淀，一些 UI 设计和运营的设计</p>
             <div class="tags"><span>Fintech</span><span>Mobile</span></div>
           </div>
         </article>
@@ -274,7 +286,7 @@
           <div class="card-thumb"><div class="card-art art-4" style="--img:url('https://i.postimg.cc/c4P9L3Ms/04.jpg')"></div></div>
           <div class="card-info">
             <div class="card-row"><h4>2024 年上半年</h4></div>
-            <p>An immersive music player that visualizes sound in real time.</p>
+            <p>微信读书的运营活动和封面设计以及输入法的功能方案尝试</p>
             <div class="tags"><span>Audio</span><span>WebGL</span></div>
           </div>
         </article>
@@ -283,7 +295,7 @@
           <div class="card-thumb"><div class="card-art art-5" style="--img:url('https://i.postimg.cc/63HzJ45f/05.jpg')"></div></div>
           <div class="card-info">
             <div class="card-row"><h4>2023 年下半年</h4></div>
-            <p>Portfolio site for a creative studio with kinetic typography.</p>
+            <p>微信读书的运营活动和封面设计</p>
             <div class="tags"><span>Web</span><span>Typography</span></div>
           </div>
         </article>
@@ -292,7 +304,7 @@
           <div class="card-thumb"><div class="card-art art-6" style="--img:url('https://i.postimg.cc/bwXghhpy/06.jpg')"></div></div>
           <div class="card-info">
             <div class="card-row"><h4>2023 年上半年</h4></div>
-            <p>A variable typeface designed for code editors and terminals.</p>
+            <p>微信读书的运营活动和封面设计</p>
             <div class="tags"><span>Type</span><span>OSS</span></div>
           </div>
         </article>
@@ -301,7 +313,7 @@
           <div class="card-thumb"><div class="card-art art-7" style="--img:url('https://i.postimg.cc/d10mBQm8/07.jpg')"></div></div>
           <div class="card-info">
             <div class="card-row"><h4>2022 年终总结</h4></div>
-            <p>A frosted, glass-morphic UI kit for crypto dashboards.</p>
+            <p>微信听书的 UI 设计和 App 运营设计</p>
             <div class="tags"><span>Design Sys</span><span>Crypto</span></div>
           </div>
         </article>
@@ -311,7 +323,6 @@
 
     <footer class="port-foot">
       <div>© 2026 JSWU STUDIO — Designed & built with care.</div>
-      <div class="dim">Scroll back to top ↑</div>
     </footer>
   </section>
 
@@ -319,7 +330,7 @@
   <section id="project" class="project-detail" hidden aria-label="作品集详情">
     <!-- 顶部返回入口 -->
     <header class="pd-top">
-      <a href="#work" class="pd-back liquid-glass" id="pdBack" aria-label="返回作品目录"><span class="pd-back-icon">←</span> 返回作品目录</a>
+      <a href="#work" class="pd-back" id="pdBack" aria-label="返回作品目录"><span class="pd-back-icon">←</span> 返回作品目录</a>
     </header>
 
     <!-- 项目头部信息 -->
@@ -372,7 +383,7 @@
     </defs>
   </svg>
   <div class="lb" id="lightbox" hidden aria-hidden="true">
-    <button class="lb-close liquid-glass" id="lbClose" aria-label="关闭预览">
+    <button class="lb-close" id="lbClose" aria-label="关闭预览">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
         <path d="M5 5 L15 15 M15 5 L5 15" />
       </svg>
@@ -380,7 +391,7 @@
     <div class="lb-stage" id="lbStage">
       <img class="lb-img" id="lbImg" alt="" draggable="false" />
     </div>
-    <div class="lb-toolbar liquid-glass" role="toolbar" aria-label="预览工具栏">
+    <div class="lb-toolbar" role="toolbar" aria-label="预览工具栏">
       <button class="lb-tool lb-tool-icon" id="lbPrev" aria-label="上一张" title="上一张">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
           <path d="M10 3 L5 8 L10 13" />
@@ -400,6 +411,6 @@
     </div>
   </div>
 
-  <script src="./app.js?v=82"></script>
+  <script src="./app.js?v=92"></script>
 </body>
 </html>

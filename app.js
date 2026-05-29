@@ -115,6 +115,8 @@ setTimeout(blink, 2800);
 // ====== 缩略图 Stack 循环（React Bits 风格） ======
 // 所有卡片始终可见；顶卡每隔 N 秒被发回底部，下一张升至顶部
 let tsCycleTimer = null;
+let tsPushTimer = null;
+let tsCyclingInitTimer = null;
 const tsStack = document.querySelector('.thumb-stack');
 const tsCards = Array.from(document.querySelectorAll('.ts-card'));
 // 当前栈顺序：数组索引小=栈底，大=栈顶
@@ -130,6 +132,10 @@ function applyStackOrder() {
 
 function startTsCycle() {
   if (!tsStack) return;
+  // 清理可能遗留的定时器
+  if (tsPushTimer) clearTimeout(tsPushTimer);
+  if (tsCyclingInitTimer) clearTimeout(tsCyclingInitTimer);
+
   // 入场：先按出现顺序设 data-enter（控制坠落延迟）
   tsCards.forEach((card, i) => {
     card.setAttribute('data-enter', String(i));
@@ -138,16 +144,16 @@ function startTsCycle() {
   // 触发入场（CSS 中 .ts-stack-ready 控制目标位置）
   tsStack.classList.add('ts-stack-ready');
 
-  // 缩略图开始坠落的瞬间（2.55s），把 .big-title 的中缝从 16px 推到 512px，
-  // 做出 "缩略图把英文挤开" 的视觉
+  // 缩略图开始坠落的瞬间（与首卡 2.50s 延迟启动相匹配，即 SPACE 揭幕完成时），
+  // 把 .big-title 的中缝从 16px 推到 512px，做出 "缩略图把英文挤开" 的视觉
   const bigTitle = document.querySelector('.big-title');
-  const pushTimer = setTimeout(() => {
+  tsPushTimer = setTimeout(() => {
     if (bigTitle) bigTitle.classList.add('thumb-pushed');
-  }, 2550);
+  }, 2500);
 
   // 入场动画结束后切到循环态：移除 data-enter（清除 delay），加 .ts-cycling
-  // 最后一张延迟 3.0s + transition 0.85s ≈ 3.85s，留点 buffer
-  setTimeout(() => {
+  // 最后一张延迟 2.74s + transition 0.85s ≈ 3.6s，留一丁点 buffer
+  tsCyclingInitTimer = setTimeout(() => {
     tsCards.forEach(card => card.removeAttribute('data-enter'));
     tsStack.classList.add('ts-cycling');
 
@@ -158,11 +164,13 @@ function startTsCycle() {
       tsOrder.unshift(top);
       applyStackOrder();
     }, 2000);
-  }, 4000);
+  }, 3700);
 }
 
 function stopTsCycle() {
   if (tsCycleTimer) { clearInterval(tsCycleTimer); tsCycleTimer = null; }
+  if (tsPushTimer) { clearTimeout(tsPushTimer); tsPushTimer = null; }
+  if (tsCyclingInitTimer) { clearTimeout(tsCyclingInitTimer); tsCyclingInitTimer = null; }
   if (tsStack) {
     tsStack.classList.remove('ts-stack-ready', 'ts-cycling');
   }
@@ -180,6 +188,32 @@ const intro = document.getElementById('intro');
 const portfolio = document.getElementById('portfolio');
 const enterBtn = document.getElementById('enterBtn');
 const backBtn = document.getElementById('backBtn');
+
+// ====== 大字逐个揭幕（JS → WU → DESIGN → SPACE） ======
+// 用 JS 按数组顺序逐个加 .wipe-go 触发，顺序与间隔完全由代码掌控，
+// 不依赖 CSS animation-delay（曾被简写/优先级反复覆盖导致 4 字同时动）。
+// 相邻字启动间隔(ms)：必须 ≥ 单字揭幕时长(CSS 0.55s)，否则会重叠。
+// 600 = 550ms 揭幕 + 50ms 喘息，确保前一个字完整播完才轮到下一个。
+const WORD_WIPE_GAP = 600;
+let wordWipeTimers = [];
+
+function resetWordWipe() {
+  wordWipeTimers.forEach(t => clearTimeout(t));
+  wordWipeTimers = [];
+  document.querySelectorAll('.big-row .word').forEach(w => w.classList.remove('wipe-go'));
+}
+
+function startWordWipe() {
+  resetWordWipe();
+  // 严格按出现顺序：第一行左 JS → 第一行右 WU → 第二行左 DESIGN → 第二行右 SPACE
+  const order = ['.word-l-top', '.word-r-top', '.word-l-bot', '.word-r-bot'];
+  order.forEach((sel, i) => {
+    const el = document.querySelector('.big-row ' + sel);
+    if (!el) return;
+    const t = setTimeout(() => el.classList.add('wipe-go'), 150 + i * WORD_WIPE_GAP);
+    wordWipeTimers.push(t);
+  });
+}
 
 function enterPortfolio() {
   intro.classList.add('exiting');
@@ -201,6 +235,8 @@ function enterPortfolio() {
       portfolio.classList.add('entered');
       // 在显示并 reflow 后再做兜底 fit（仅在真的溢出时缩）
       requestAnimationFrame(() => fitBigTitle());
+      // 大字逐个揭幕：JS → WU → DESIGN → SPACE，顺序由 JS 循环严格保证
+      startWordWipe();
       // 启动 Stack 入场 + 循环（入场延迟在 CSS 中通过 data-enter 控制）
       startTsCycle();
     });
@@ -214,6 +250,7 @@ function enterPortfolio() {
 
 function backToIntro() {
   stopTsCycle();
+  resetWordWipe();
   portfolio.classList.remove('entering');
   portfolio.classList.remove('entered');
   portfolio.classList.remove('entered-done');
@@ -227,14 +264,160 @@ function backToIntro() {
 enterBtn.addEventListener('click', enterPortfolio);
 backBtn.addEventListener('click', backToIntro);
 
-// Home 链接也回到入场页
+// ====== 顶部导航三个 tab：Home / Text / Work ======
+// Home → 作品集页顶部；Text → 中间逐字宣言；Work → 作品网格标题
 const navHome = document.getElementById('navHome');
-if (navHome) {
-  navHome.addEventListener('click', (e) => {
-    e.preventDefault();
-    backToIntro();
-  });
+const navText = document.getElementById('navText');
+const navWork = document.getElementById('navWork');
+const navLinks = document.querySelectorAll('.nav-links a');
+
+function setActiveNav(activeEl) {
+  navLinks.forEach(a => a.classList.remove('active'));
+  if (activeEl) activeEl.classList.add('active');
 }
+
+// 平滑滚动到指定 Y
+// 注意：window.scrollTo({behavior:'smooth'}) 在以下场景会被浏览器降级为瞬时跳：
+//   - 用户系统/浏览器开了"减少动效" (prefers-reduced-motion: reduce)
+//   - 部分小屏移动浏览器、低端 Android WebView 不支持 smooth
+//   - 部分桌面 Safari 老版本忽略 smooth
+// 改用 rAF 自己写一个缓动动画，保证所有屏幕一致体验
+let _scrollAnimRAF = 0;
+function smoothScrollToY(y) {
+  const targetY = Math.max(0, y | 0);
+  const startY = window.pageYOffset || document.documentElement.scrollTop || 0;
+  const dist = targetY - startY;
+  if (Math.abs(dist) < 2) { window.scrollTo(0, targetY); return; }
+  // 距离自适应时长（放慢版）：300px 内 ~700ms，2000px ~1200ms，最长 ~1600ms
+  const dur = Math.min(1600, Math.max(700, Math.abs(dist) * 0.6));
+  const startT = performance.now();
+  // easeInOutCubic
+  const easing = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  if (_scrollAnimRAF) cancelAnimationFrame(_scrollAnimRAF);
+  function tick(now) {
+    const t = Math.min(1, (now - startT) / dur);
+    const e = easing(t);
+    window.scrollTo(0, startY + dist * e);
+    if (t < 1) _scrollAnimRAF = requestAnimationFrame(tick);
+    else _scrollAnimRAF = 0;
+  }
+  _scrollAnimRAF = requestAnimationFrame(tick);
+}
+
+// 动态计算 fixed nav 高度（用于 scrollToSelector 的 offset）
+// 实际 offset = navHeight + 64px 留白（模块顶部内容距导航栏 64px，避免太贴近）
+function getNavOffset() {
+  const nav = document.querySelector('.port-nav');
+  const navH = nav ? nav.getBoundingClientRect().height : 64;
+  return navH + 64;
+}
+
+function scrollToTopOfPortfolio() {
+  smoothScrollToY(0);
+}
+
+// 动态 spacer：保证 #work / #text 等模块的"标题"可以真正滚到 navOffset 位置
+// 不加这个，浏览器在「目标 Y > maxScrollY」时会把滚动钳到底部，标题就还在视口下方看不见
+function ensureScrollSpacer(targetY) {
+  let sp = document.getElementById('__scrollSpacer');
+  if (!sp) {
+    sp = document.createElement('div');
+    sp.id = '__scrollSpacer';
+    sp.style.cssText = 'width:1px;height:0;pointer-events:none;visibility:hidden;';
+    document.body.appendChild(sp);
+  }
+  const docH = document.documentElement.scrollHeight;
+  const winH = window.innerHeight;
+  const maxScroll = docH - winH;
+  const need = targetY - maxScroll;
+  if (need > 0) {
+    const cur = parseFloat(sp.style.height) || 0;
+    sp.style.height = (cur + need + 8) + 'px';
+  }
+}
+
+function scrollToSelector(sel, offset) {
+  const el = document.querySelector(sel);
+  if (!el) return;
+  if (typeof offset !== 'number') offset = getNavOffset();
+  // 用 rect.top + pageYOffset 计算绝对 Y，offset = nav 高度 + 64px 留白
+  const rect = el.getBoundingClientRect();
+  const y = Math.max(0, rect.top + window.pageYOffset - offset);
+  // 关键修复：大屏 / 短文档时，maxScroll 可能 < y，浏览器会把滚动钳到底部
+  // 先保证文档底部有足够空间能让 y 真正可滚到
+  ensureScrollSpacer(y);
+  smoothScrollToY(y);
+}
+
+// 防止三重事件兜底（直接监听 + 容器委托 + window capture）重复触发
+// 同一次点击如果在 50ms 内被多个 handler 命中，只执行第一次
+let _navClickLockUntil = 0;
+
+// 统一处理三个 tab 的点击
+function handleNavClick(which, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const now = Date.now();
+  if (now < _navClickLockUntil) return;
+  _navClickLockUntil = now + 100;
+  if (which === 'home') { setActiveNav(navHome); scrollToTopOfPortfolio(); }
+  else if (which === 'text') { setActiveNav(navText); scrollToSelector('#text'); }
+  else if (which === 'work') { setActiveNav(navWork); scrollToSelector('#work'); }
+}
+
+if (navHome) navHome.addEventListener('click', (e) => handleNavClick('home', e));
+if (navText) navText.addEventListener('click', (e) => handleNavClick('text', e));
+if (navWork) navWork.addEventListener('click', (e) => handleNavClick('work', e));
+
+// 兜底 1：在 .nav-links 容器上事件委托（capture 阶段，最早命中）
+const navLinksEl = document.querySelector('.nav-links');
+if (navLinksEl && !navLinksEl._delegateBound) {
+  navLinksEl.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    if (a.id === 'navHome') { e.preventDefault(); handleNavClick('home'); }
+    else if (a.id === 'navText') { e.preventDefault(); handleNavClick('text'); }
+    else if (a.id === 'navWork') { e.preventDefault(); handleNavClick('work'); }
+  }, true);
+  navLinksEl._delegateBound = true;
+}
+
+// 兜底 2：window capture 阶段全局兜底（解决 backdrop-filter / stacking context 导致 hit-test 偶发失效）
+window.addEventListener('click', (e) => {
+  if (!portfolio || portfolio.hidden) return;
+  const a = e.target.closest && e.target.closest('.nav-links a');
+  if (!a) return;
+  if (a.id === 'navHome') { e.preventDefault(); handleNavClick('home'); }
+  else if (a.id === 'navText') { e.preventDefault(); handleNavClick('text'); }
+  else if (a.id === 'navWork') { e.preventDefault(); handleNavClick('work'); }
+}, true);
+
+// 滚动时根据可视区自动高亮当前 tab
+(() => {
+  if (!navHome && !navText && !navWork) return;
+  let ticking = false;
+  function updateActiveOnScroll() {
+    if (portfolio.hidden) return;
+    const y = window.pageYOffset;
+    const textEl = document.getElementById('text');
+    const workEl = document.getElementById('work');
+    const textTop = textEl ? textEl.getBoundingClientRect().top + y : Infinity;
+    const workTop = workEl ? workEl.getBoundingClientRect().top + y : Infinity;
+    const threshold = window.innerHeight * 0.4;
+    let target = navHome;
+    if (y + threshold >= workTop) target = navWork;
+    else if (y + threshold >= textTop) target = navText;
+    else target = navHome;
+    if (target && !target.classList.contains('active')) setActiveNav(target);
+  }
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      updateActiveOnScroll();
+      ticking = false;
+    });
+  }, { passive: true });
+})();
 // logo 点击也回入场页
 document.querySelectorAll('.port-nav .logo-personal').forEach(l => {
   l.addEventListener('click', (e) => {
@@ -303,32 +486,272 @@ const pdGallery = document.getElementById('pdGallery');
 const pdContinueGrid = document.getElementById('pdContinueGrid');
 
 // 每个项目的图集
-// aether（2025 年下半年 / 创意视觉）：使用本地原图 ./assets/aether/0X.png（高清原图，避免 postimg 压缩失真）
+// aether（2025 年下半年 / 创意视觉）：postimg CDN 直链（来自 https://postimg.cc/gallery/FXq8NwX）
 //   每条记录可以是 string（picsum id，仍走旧逻辑）或 { url, variant } 对象（直接外链 + 自定义版式）
 //   variant: 'wide' = 占两列 16:9，'tall' = 单列 3:4，留空 = 单列 4:3
 // 其他项目继续用 picsum demo，等待真实素材替换
 const projectGalleries = {
   aether: [
-    { url: './assets/aether/01.jpg', variant: 'wide' },
-    { url: './assets/aether/02.jpg', variant: 'wide' },
-    { url: './assets/aether/03.jpg', variant: 'wide' },
-    { url: './assets/aether/04.jpg', variant: 'wide' },
-    { url: './assets/aether/05.jpg', variant: 'wide' },
-    { url: './assets/aether/06.jpg', variant: 'wide' },
-    { url: './assets/aether/07.jpg', variant: 'wide' },
-    { url: './assets/aether/08.jpg', variant: 'wide' },
-    { url: './assets/aether/09.jpg', variant: 'wide' },
-    { url: './assets/aether/10.jpg', variant: 'wide' },
-    { url: './assets/aether/11.jpg', variant: 'wide' },
-    { url: './assets/aether/12.jpg', variant: 'wide' },
-    { url: './assets/aether/13.jpg', variant: 'wide' },
+    { url: 'assets/aether/00-head.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/Z525v5fN/01.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/4xqxHx8K/02.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/kgzgRgj4/03.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/3xVx0xLr/04.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/GmVmTmMr/05.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/DwHw4wCh/06.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/rwKppr9F/07.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/GmHppyj3/08.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/kXj49cKs/09.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/Kv9zFNBN/10.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/3JLR7BmC/11.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/bN6J8Tk3/12.png', variant: 'wide' },
+    { url: 'https://i.postimg.cc/5N90ZGYH/13.png', variant: 'wide' },
+    { url: 'assets/aether/99-tail.jpg', variant: 'wide' },
   ],
-  lumen:   ['1059', '1062', '1067', '1074', '1080', '1084'],
-  nova:    ['110',  '111',  '112',  '113',  '114',  '115'],
-  echo:    ['116',  '117',  '118',  '119',  '120',  '121'],
-  drift:   ['122',  '124',  '127',  '129',  '133',  '136'],
-  mono:    ['141',  '142',  '146',  '152',  '160',  '164'],
-  glacier: ['175',  '180',  '185',  '190',  '195',  '200'],
+  // lumen（2025 年上半年 / 构成设计）：postimg CDN 直链（来自 https://postimg.cc/gallery/2VNvhV5）+ 本地头尾插图
+  lumen: [
+    { url: 'assets/lumen/00-head.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/NFXj4qLS/01.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/wvZBLTTz/02.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/FR8K3ssQ/03.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/gJQ08kkW/04.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/bJWvkNNc/05.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/LXwsL64b/06.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/d1p0rtQf/07.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/50TtLN9K/08.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/9MKfZFXJ/09.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/nzgLBcVv/10.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/vBkmfH8f/11.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/hj6GTP4x/12.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/G2H24sRz/13.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/G2H24sRj/14.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/j5L5DJTQ/15.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/fLJLV0s7/16.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/TwpwKWxg/17.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/ydkdDSK3/18.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/xCcCXbQk/19.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/HxVxr7m7/20.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/63y38GK2/21.jpg', variant: 'wide' },
+    { url: 'https://i.postimg.cc/sXvXMZzX/22.jpg', variant: 'wide' },
+    { url: 'assets/lumen/99-tail.jpg', variant: 'wide' },
+  ],
+  // nova（2024 年下半年 / IP 及场景）：本地资源 assets/nova/01-26.jpg + 本地头尾插图
+  nova: [
+    { url: 'assets/nova/00-head.jpg', variant: 'wide' },
+    { url: 'assets/nova/01.jpg', variant: 'wide' },
+    { url: 'assets/nova/02.jpg', variant: 'wide' },
+    { url: 'assets/nova/03.jpg', variant: 'wide' },
+    { url: 'assets/nova/04.jpg', variant: 'wide' },
+    { url: 'assets/nova/05.jpg', variant: 'wide' },
+    { url: 'assets/nova/06.jpg', variant: 'wide' },
+    { url: 'assets/nova/07.jpg', variant: 'wide' },
+    { url: 'assets/nova/08.jpg', variant: 'wide' },
+    { url: 'assets/nova/09.jpg', variant: 'wide' },
+    { url: 'assets/nova/10.jpg', variant: 'wide' },
+    { url: 'assets/nova/11.jpg', variant: 'wide' },
+    { url: 'assets/nova/12.jpg', variant: 'wide' },
+    { url: 'assets/nova/13.jpg', variant: 'wide' },
+    { url: 'assets/nova/14.jpg', variant: 'wide' },
+    { url: 'assets/nova/15.jpg', variant: 'wide' },
+    { url: 'assets/nova/16.jpg', variant: 'wide' },
+    { url: 'assets/nova/17.jpg', variant: 'wide' },
+    { url: 'assets/nova/18.jpg', variant: 'wide' },
+    { url: 'assets/nova/19.jpg', variant: 'wide' },
+    { url: 'assets/nova/20.jpg', variant: 'wide' },
+    { url: 'assets/nova/21.jpg', variant: 'wide' },
+    { url: 'assets/nova/22.jpg', variant: 'wide' },
+    { url: 'assets/nova/23.jpg', variant: 'wide' },
+    { url: 'assets/nova/24.jpg', variant: 'wide' },
+    { url: 'assets/nova/25.jpg', variant: 'wide' },
+    { url: 'assets/nova/26.jpg', variant: 'wide' },
+    { url: 'assets/nova/99-tail.jpg', variant: 'wide' },
+  ],
+  // echo（2024 年上半年 / 工作项目）：本地资源 assets/echo/01-17.jpg + 本地头尾插图
+  echo: [
+    { url: 'assets/echo/00-head.jpg', variant: 'wide' },
+    { url: 'assets/echo/01.jpg', variant: 'wide' },
+    { url: 'assets/echo/02.jpg', variant: 'wide' },
+    { url: 'assets/echo/03.jpg', variant: 'wide' },
+    { url: 'assets/echo/04.jpg', variant: 'wide' },
+    { url: 'assets/echo/05.jpg', variant: 'wide' },
+    { url: 'assets/echo/06.jpg', variant: 'wide' },
+    { url: 'assets/echo/07.jpg', variant: 'wide' },
+    { url: 'assets/echo/08.jpg', variant: 'wide' },
+    { url: 'assets/echo/09.jpg', variant: 'wide' },
+    { url: 'assets/echo/10.jpg', variant: 'wide' },
+    { url: 'assets/echo/11.jpg', variant: 'wide' },
+    { url: 'assets/echo/12.jpg', variant: 'wide' },
+    { url: 'assets/echo/13.jpg', variant: 'wide' },
+    { url: 'assets/echo/14.jpg', variant: 'wide' },
+    { url: 'assets/echo/15.jpg', variant: 'wide' },
+    { url: 'assets/echo/16.jpg', variant: 'wide' },
+    { url: 'assets/echo/17.jpg', variant: 'wide' },
+    { url: 'assets/echo/99-tail.jpg', variant: 'wide' },
+  ],
+  // drift（2023 年下半年 / 工作项目）：本地资源 assets/drift/01-61.jpg
+  drift: [
+    { url: 'assets/drift/01.jpg', variant: 'wide' },
+    { url: 'assets/drift/02.jpg', variant: 'wide' },
+    { url: 'assets/drift/03.jpg', variant: 'wide' },
+    { url: 'assets/drift/04.jpg', variant: 'wide' },
+    { url: 'assets/drift/05.jpg', variant: 'wide' },
+    { url: 'assets/drift/06.jpg', variant: 'wide' },
+    { url: 'assets/drift/07.jpg', variant: 'wide' },
+    { url: 'assets/drift/08.jpg', variant: 'wide' },
+    { url: 'assets/drift/09.jpg', variant: 'wide' },
+    { url: 'assets/drift/10.jpg', variant: 'wide' },
+    { url: 'assets/drift/11.jpg', variant: 'wide' },
+    { url: 'assets/drift/12.jpg', variant: 'wide' },
+    { url: 'assets/drift/13.jpg', variant: 'wide' },
+    { url: 'assets/drift/14.jpg', variant: 'wide' },
+    { url: 'assets/drift/15.jpg', variant: 'wide' },
+    { url: 'assets/drift/16.jpg', variant: 'wide' },
+    { url: 'assets/drift/17.jpg', variant: 'wide' },
+    { url: 'assets/drift/18.jpg', variant: 'wide' },
+    { url: 'assets/drift/19.jpg', variant: 'wide' },
+    { url: 'assets/drift/20.jpg', variant: 'wide' },
+    { url: 'assets/drift/21.jpg', variant: 'wide' },
+    { url: 'assets/drift/22.jpg', variant: 'wide' },
+    { url: 'assets/drift/23.jpg', variant: 'wide' },
+    { url: 'assets/drift/24.jpg', variant: 'wide' },
+    { url: 'assets/drift/25.jpg', variant: 'wide' },
+    { url: 'assets/drift/26.jpg', variant: 'wide' },
+    { url: 'assets/drift/27.jpg', variant: 'wide' },
+    { url: 'assets/drift/28.jpg', variant: 'wide' },
+    { url: 'assets/drift/29.jpg', variant: 'wide' },
+    { url: 'assets/drift/30.jpg', variant: 'wide' },
+    { url: 'assets/drift/31.jpg', variant: 'wide' },
+    { url: 'assets/drift/32.jpg', variant: 'wide' },
+    { url: 'assets/drift/33.jpg', variant: 'wide' },
+    { url: 'assets/drift/34.jpg', variant: 'wide' },
+    { url: 'assets/drift/35.jpg', variant: 'wide' },
+    { url: 'assets/drift/36.jpg', variant: 'wide' },
+    { url: 'assets/drift/37.jpg', variant: 'wide' },
+    { url: 'assets/drift/38.jpg', variant: 'wide' },
+    { url: 'assets/drift/39.jpg', variant: 'wide' },
+    { url: 'assets/drift/40.jpg', variant: 'wide' },
+    { url: 'assets/drift/41.jpg', variant: 'wide' },
+    { url: 'assets/drift/42.jpg', variant: 'wide' },
+    { url: 'assets/drift/43.jpg', variant: 'wide' },
+    { url: 'assets/drift/44.jpg', variant: 'wide' },
+    { url: 'assets/drift/45.jpg', variant: 'wide' },
+    { url: 'assets/drift/46.jpg', variant: 'wide' },
+    { url: 'assets/drift/47.jpg', variant: 'wide' },
+    { url: 'assets/drift/48.jpg', variant: 'wide' },
+    { url: 'assets/drift/49.jpg', variant: 'wide' },
+    { url: 'assets/drift/50.jpg', variant: 'wide' },
+    { url: 'assets/drift/51.jpg', variant: 'wide' },
+    { url: 'assets/drift/52.jpg', variant: 'wide' },
+    { url: 'assets/drift/53.jpg', variant: 'wide' },
+    { url: 'assets/drift/54.jpg', variant: 'wide' },
+    { url: 'assets/drift/55.jpg', variant: 'wide' },
+    { url: 'assets/drift/56.jpg', variant: 'wide' },
+    { url: 'assets/drift/57.jpg', variant: 'wide' },
+    { url: 'assets/drift/58.jpg', variant: 'wide' },
+    { url: 'assets/drift/59.jpg', variant: 'wide' },
+    { url: 'assets/drift/60.jpg', variant: 'wide' },
+    { url: 'assets/drift/61.jpg', variant: 'wide' },
+  ],
+  // mono（2023 年上半年 / 工作项目）：本地资源 assets/mono/01-30.png
+  mono: [
+    { url: 'assets/mono/01.jpg', variant: 'wide' },
+    { url: 'assets/mono/02.jpg', variant: 'wide' },
+    { url: 'assets/mono/03.jpg', variant: 'wide' },
+    { url: 'assets/mono/04.jpg', variant: 'wide' },
+    { url: 'assets/mono/05.jpg', variant: 'wide' },
+    { url: 'assets/mono/06.jpg', variant: 'wide' },
+    { url: 'assets/mono/07.jpg', variant: 'wide' },
+    { url: 'assets/mono/08.jpg', variant: 'wide' },
+    { url: 'assets/mono/09.jpg', variant: 'wide' },
+    { url: 'assets/mono/10.jpg', variant: 'wide' },
+    { url: 'assets/mono/11.jpg', variant: 'wide' },
+    { url: 'assets/mono/12.jpg', variant: 'wide' },
+    { url: 'assets/mono/13.jpg', variant: 'wide' },
+    { url: 'assets/mono/14.jpg', variant: 'wide' },
+    { url: 'assets/mono/15.jpg', variant: 'wide' },
+    { url: 'assets/mono/16.jpg', variant: 'wide' },
+    { url: 'assets/mono/17.jpg', variant: 'wide' },
+    { url: 'assets/mono/18.jpg', variant: 'wide' },
+    { url: 'assets/mono/19.jpg', variant: 'wide' },
+    { url: 'assets/mono/20.jpg', variant: 'wide' },
+    { url: 'assets/mono/21.jpg', variant: 'wide' },
+    { url: 'assets/mono/22.jpg', variant: 'wide' },
+    { url: 'assets/mono/23.jpg', variant: 'wide' },
+    { url: 'assets/mono/24.jpg', variant: 'wide' },
+    { url: 'assets/mono/25.jpg', variant: 'wide' },
+    { url: 'assets/mono/26.jpg', variant: 'wide' },
+    { url: 'assets/mono/27.jpg', variant: 'wide' },
+    { url: 'assets/mono/28.jpg', variant: 'wide' },
+    { url: 'assets/mono/29.jpg', variant: 'wide' },
+    { url: 'assets/mono/30.jpg', variant: 'wide' },
+  ],
+  glacier: [
+    { url: 'assets/glacier/01.jpg', variant: 'wide' },
+    { url: 'assets/glacier/02.jpg', variant: 'wide' },
+    { url: 'assets/glacier/03.jpg', variant: 'wide' },
+    { url: 'assets/glacier/04.jpg', variant: 'wide' },
+    { url: 'assets/glacier/05.jpg', variant: 'wide' },
+    { url: 'assets/glacier/06.jpg', variant: 'wide' },
+    { url: 'assets/glacier/07.jpg', variant: 'wide' },
+    { url: 'assets/glacier/08.jpg', variant: 'wide' },
+    { url: 'assets/glacier/09.jpg', variant: 'wide' },
+    { url: 'assets/glacier/10.jpg', variant: 'wide' },
+    { url: 'assets/glacier/11.jpg', variant: 'wide' },
+    { url: 'assets/glacier/12.jpg', variant: 'wide' },
+    { url: 'assets/glacier/13.jpg', variant: 'wide' },
+    { url: 'assets/glacier/14.jpg', variant: 'wide' },
+    { url: 'assets/glacier/15.jpg', variant: 'wide' },
+    { url: 'assets/glacier/16.jpg', variant: 'wide' },
+    { url: 'assets/glacier/17.jpg', variant: 'wide' },
+    { url: 'assets/glacier/18.jpg', variant: 'wide' },
+    { url: 'assets/glacier/19.jpg', variant: 'wide' },
+    { url: 'assets/glacier/20.jpg', variant: 'wide' },
+    { url: 'assets/glacier/21.jpg', variant: 'wide' },
+    { url: 'assets/glacier/22.jpg', variant: 'wide' },
+    { url: 'assets/glacier/23.jpg', variant: 'wide' },
+    { url: 'assets/glacier/24.jpg', variant: 'wide' },
+    { url: 'assets/glacier/25.jpg', variant: 'wide' },
+    { url: 'assets/glacier/26.jpg', variant: 'wide' },
+    { url: 'assets/glacier/27.jpg', variant: 'wide' },
+    { url: 'assets/glacier/28.jpg', variant: 'wide' },
+    { url: 'assets/glacier/29.jpg', variant: 'wide' },
+    { url: 'assets/glacier/30.jpg', variant: 'wide' },
+    { url: 'assets/glacier/31.jpg', variant: 'wide' },
+    { url: 'assets/glacier/32.jpg', variant: 'wide' },
+    { url: 'assets/glacier/33.jpg', variant: 'wide' },
+    { url: 'assets/glacier/34.jpg', variant: 'wide' },
+    { url: 'assets/glacier/35.jpg', variant: 'wide' },
+    { url: 'assets/glacier/36.jpg', variant: 'wide' },
+    { url: 'assets/glacier/37.jpg', variant: 'wide' },
+    { url: 'assets/glacier/38.jpg', variant: 'wide' },
+    { url: 'assets/glacier/39.jpg', variant: 'wide' },
+    { url: 'assets/glacier/40.jpg', variant: 'wide' },
+    { url: 'assets/glacier/41.jpg', variant: 'wide' },
+    { url: 'assets/glacier/42.jpg', variant: 'wide' },
+    { url: 'assets/glacier/43.jpg', variant: 'wide' },
+    { url: 'assets/glacier/44.jpg', variant: 'wide' },
+    { url: 'assets/glacier/45.jpg', variant: 'wide' },
+    { url: 'assets/glacier/46.jpg', variant: 'wide' },
+    { url: 'assets/glacier/47.jpg', variant: 'wide' },
+    { url: 'assets/glacier/48.jpg', variant: 'wide' },
+    { url: 'assets/glacier/49.jpg', variant: 'wide' },
+    { url: 'assets/glacier/50.jpg', variant: 'wide' },
+    { url: 'assets/glacier/51.jpg', variant: 'wide' },
+    { url: 'assets/glacier/52.jpg', variant: 'wide' },
+    { url: 'assets/glacier/53.jpg', variant: 'wide' },
+    { url: 'assets/glacier/54.jpg', variant: 'wide' },
+    { url: 'assets/glacier/55.jpg', variant: 'wide' },
+    { url: 'assets/glacier/56.jpg', variant: 'wide' },
+    { url: 'assets/glacier/57.jpg', variant: 'wide' },
+    { url: 'assets/glacier/58.jpg', variant: 'wide' },
+    { url: 'assets/glacier/59.jpg', variant: 'wide' },
+    { url: 'assets/glacier/60.jpg', variant: 'wide' },
+    { url: 'assets/glacier/61.jpg', variant: 'wide' },
+    { url: 'assets/glacier/62.jpg', variant: 'wide' },
+    { url: 'assets/glacier/63.jpg', variant: 'wide' },
+    { url: 'assets/glacier/64.jpg', variant: 'wide' },
+    { url: 'assets/glacier/65.jpg', variant: 'wide' },
+  ],
 };
 
 // 预先把 7 张卡片元数据缓存下来（顺序 = DOM 顺序）
@@ -417,6 +840,18 @@ function openProjectDetail(projectId) {
     pdGallery.innerHTML = buckets
       .map(col => `<div class="pd-col">${col.join('')}</div>`)
       .join('');
+    // 骨架图：图片加载完成后给 .pd-photo 加 .loaded（解除 16:9 骨架占位 + 淡入）
+    pdGallery.querySelectorAll('.pd-photo').forEach(photo => {
+      const img = photo.querySelector('img');
+      if (!img) return;
+      if (img.complete && img.naturalWidth > 0) {
+        photo.classList.add('loaded');           // 已缓存：直接显示
+      } else {
+        img.addEventListener('load', () => photo.classList.add('loaded'), { once: true });
+        // 加载失败也解除骨架，避免一直转
+        img.addEventListener('error', () => photo.classList.add('loaded'), { once: true });
+      }
+    });
   };
   layoutGallery();
 
@@ -476,13 +911,27 @@ function openProjectDetail(projectId) {
     item.addEventListener('mouseleave', () => {
       item.style.setProperty('--edge-proximity', '0');
     });
-    // 点击切换详情
+    // 点击切换详情（直接监听）
     item.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       openProjectDetail(item.dataset.project);
       projectDetail.scrollTo({ top: 0, behavior: 'smooth' });
     });
   });
+  // 兜底：在 pdContinueGrid 容器上事件委托（捕获阶段，最早命中），
+  // 防止某些屏幕/内核下 mask-image / mix-blend-mode / 子元素 hit-test 异常导致直接监听失效
+  if (!pdContinueGrid._delegateBound) {
+    pdContinueGrid.addEventListener('click', (e) => {
+      const item = e.target.closest && e.target.closest('.pd-next-item');
+      if (item && item.dataset.project) {
+        e.preventDefault();
+        openProjectDetail(item.dataset.project);
+        projectDetail.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, true);
+    pdContinueGrid._delegateBound = true;
+  }
 
   // 显示详情页 & 锁定背景滚动
   projectDetail.hidden = false;
@@ -521,6 +970,18 @@ window.addEventListener('click', (e) => {
   if (back && projectDetail && !projectDetail.hidden) {
     e.preventDefault();
     closeProjectDetail();
+  }
+}, true);
+
+// 兜底 3：window capture 阶段提前命中"猜你想看"卡片点击
+// 解决某些屏幕（特别是 iOS Safari / 触摸屏）下 mask-image 装饰层导致 hit-test 异常的问题
+window.addEventListener('click', (e) => {
+  if (!projectDetail || projectDetail.hidden) return;
+  const item = e.target.closest && e.target.closest('.pd-next-item');
+  if (item && item.dataset.project) {
+    e.preventDefault();
+    openProjectDetail(item.dataset.project);
+    projectDetail.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }, true);
 
