@@ -215,7 +215,10 @@ function startWordWipe() {
   });
 }
 
+let _entering = false;
 function enterPortfolio() {
+  if (_entering) return;      // 防重入：pointerdown/click 双触发或多次点击只生效一次
+  _entering = true;
   intro.classList.add('exiting');
   setTimeout(() => {
     intro.hidden = true;
@@ -251,6 +254,7 @@ function enterPortfolio() {
 function backToIntro() {
   stopTsCycle();
   resetWordWipe();
+  _entering = false;          // 重置入场锁，允许再次进入
   portfolio.classList.remove('entering');
   portfolio.classList.remove('entered');
   portfolio.classList.remove('entered-done');
@@ -261,7 +265,9 @@ function backToIntro() {
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-enterBtn.addEventListener('click', enterPortfolio);
+// 用 pointerdown 替代 click：消除移动端 ~300ms 点击延迟，按下即响应。
+// pointerdown 同时覆盖鼠标/触屏/触控笔；配合 enterPortfolio 内部 _entering 锁防重复触发。
+enterBtn.addEventListener('pointerdown', enterPortfolio);
 backBtn.addEventListener('click', backToIntro);
 
 // ====== 顶部导航三个 tab：Home / Text / Work ======

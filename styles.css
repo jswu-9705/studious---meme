@@ -128,6 +128,7 @@ a { color: inherit; text-decoration: none; }
 
 /* 极淡网格 */
 .grid-faint {
+  display: none !important;   /* 去掉螺旋入场页的网格背景纹理 */
   position: absolute; inset: 0;
   background-image:
     linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
@@ -559,7 +560,7 @@ a { color: inherit; text-decoration: none; }
   font-weight: 800;
   font-size: clamp(28px, 4.8vw, 64px);
   letter-spacing: 0.04em;
-  line-height: 1.05;
+  line-height: 1.25;
   margin-bottom: 8px;
   text-shadow: 0 4px 24px rgba(0,0,0,0.6);
 }
@@ -618,6 +619,11 @@ a { color: inherit; text-decoration: none; }
 .cursor-ring.hover {
   width: 56px; height: 56px;
   background: rgba(255,255,255,0.06);
+}
+/* 仅在有精确指针（鼠标/触控板）的设备显示自定义光标；
+   触屏设备（手机/平板，pointer: coarse 或 hover: none）隐藏，避免中间出现多余圆圈 */
+@media (hover: none), (pointer: coarse) {
+  .cursor-dot, .cursor-ring { display: none !important; }
 }
 
 /* ====== 作品集顶部 Banner（100vh 首屏：只有大字 + 副标 + 缩略图） ====== */
@@ -874,6 +880,10 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 0;
   color: var(--ink);
   transition: opacity 0.3s var(--easing);
+  /* 确保 logo 在 nav-links(绝对居中层)之上、且不被压缩 */
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
 }
 .logo-personal:hover { opacity: 0.75; }
 .logo-img {
@@ -1835,7 +1845,7 @@ body.portfolio-active .cursor-ring { display: none; }
     margin: 100px auto 284px;
   }
   .scroll-reveal .sr-text {
-    font-size: clamp(22px, 6.4vw, 30px);
+    font-size: clamp(28px, 8vw, 44px);
     line-height: 1.36;
   }
   .scroll-reveal .sr-img.is-on {
@@ -2355,19 +2365,25 @@ body.portfolio-active .cursor-ring { display: none; }
   flex-shrink: 0;
   transition: transform 0.25s var(--easing);
 }
-.pd-next-item:hover .pd-next-cta {
-  background: var(--ink);
-  color: var(--bg);
-  border-color: var(--ink);
-}
-.pd-next-item:hover .pd-next-cta-arrow {
-  transform: translateX(3px);
+/* hover 态仅在支持真实悬停的设备（电脑）生效；
+   触屏设备按下时 :hover 会"粘住"导致探索按钮变白聚焦，故用 @media (hover: hover) 屏蔽 */
+@media (hover: hover) {
+  .pd-next-item:hover .pd-next-cta {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  .pd-next-item:hover .pd-next-cta-arrow {
+    transform: translateX(3px);
+  }
 }
 
+/* 与主页 .port-foot 统一：相同 padding，左对齐单行版权
+   （margin 保留 0 auto，因详情页上方 .pd-continue 已有足够留白，无需再叠 160px） */
 .pd-foot {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 32px 36px;
+  padding: 30px 40px 40px;
   border-top: 1px solid var(--line);
 }
 
@@ -2390,7 +2406,7 @@ body.portfolio-active .cursor-ring { display: none; }
   .pd-gallery { padding: 0 24px; margin-bottom: 64px; }
   .pd-continue { padding: 128px 24px 148px; }
   .pd-continue-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pd-foot { padding: 20px 24px; }
+  .pd-foot { padding-left: 24px; padding-right: 24px; }
 }
 /* —— 间距统一断点：< 520px 时图片间距与卡片间距均为 16px —— */
 @media (max-width: 519px) {
