@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jswu · Personal Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Archivo+Black&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css?v=134" />
+</head>
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <!-- ====== 入场互动页 ====== -->
+  <section id="intro" class="intro" aria-label="入场互动">
+    <!-- 背景克制点缀 -->
+    <div class="ambient ambient-1" aria-hidden="true"></div>
+    <div class="ambient ambient-2" aria-hidden="true"></div>
+    <div class="ambient ambient-3" aria-hidden="true"></div>
+
+    <!-- 网格底纹（极淡） -->
+    <div class="grid-faint" aria-hidden="true"></div>
+
+    <!-- 微星点 -->
+    <div class="stars" aria-hidden="true">
+      <span style="--x:8%;  --y:22%; --d:0s;   --o:.5"></span>
+      <span style="--x:18%; --y:74%; --d:1.2s; --o:.35"></span>
+      <span style="--x:26%; --y:38%; --d:2.4s; --o:.6"></span>
+      <span style="--x:34%; --y:88%; --d:0.6s; --o:.4"></span>
+      <span style="--x:44%; --y:14%; --d:3.1s; --o:.5"></span>
+      <span style="--x:56%; --y:80%; --d:1.8s; --o:.45"></span>
+      <span style="--x:64%; --y:30%; --d:2.7s; --o:.55"></span>
+      <span style="--x:72%; --y:62%; --d:0.9s; --o:.4"></span>
+      <span style="--x:82%; --y:18%; --d:2.1s; --o:.5"></span>
+      <span style="--x:90%; --y:48%; --d:3.6s; --o:.35"></span>
+      <span style="--x:94%; --y:82%; --d:1.4s; --o:.45"></span>
+      <span style="--x:4%;  --y:54%; --d:2.9s; --o:.4"></span>
+    </div>
+
+    <!-- 远景浮动词（极低对比度） -->
+    <div class="floaters" aria-hidden="true">
+      <span class="float-word fw-1">design.</span>
+      <span class="float-word fw-2">code.</span>
+      <span class="float-word fw-3">motion.</span>
+      <span class="float-word fw-4">brand.</span>
+      <span class="float-word fw-5">ai.</span>
+      <span class="float-word fw-6">curiosity.</span>
+    </div>
+
+    <!-- 角落刻度 -->
+    <div class="tick tick-tl" aria-hidden="true"><i></i><i></i></div>
+    <div class="tick tick-tr" aria-hidden="true"><i></i><i></i></div>
+    <div class="tick tick-bl" aria-hidden="true"><i></i><i></i></div>
+    <div class="tick tick-br" aria-hidden="true"><i></i><i></i></div>
+
+    <!-- 顶部条 -->
+    <header class="intro-top">
+      <div class="logo">
+        <span class="logo-dot"></span>
+        <span class="logo-text">JSWU<span class="logo-slash">/</span>STUDIO</span>
+      </div>
+      <div class="top-meta">
+        <span class="meta-line"><span class="dim">N°</span>&nbsp;001 / 2026</span>
+        <span class="meta-sep">·</span>
+        <span class="meta-line"><span class="status-dot"></span>&nbsp;OPEN&nbsp;FOR&nbsp;WORK</span>
+      </div>
+    </header>
+
+    <!-- 主舞台 -->
+    <div class="intro-stage">
+      <!-- 螺旋画廊：多张缩略图围绕中心螺旋旋转 -->
+      <div class="spiral-gallery" id="spiralGallery" aria-hidden="true">
+        <div class="spiral-rotor">
+          <div class="spiral-card sc-1"  style="--img:url('https://i.postimg.cc/H8zp28f4/01.png')"></div>
+          <div class="spiral-card sc-2"  style="--img:url('https://i.postimg.cc/Fkp9Zk2y/02.jpg')"></div>
+          <div class="spiral-card sc-3"  style="--img:url('https://i.postimg.cc/YLMrYzy3/03.jpg')"></div>
+          <div class="spiral-card sc-4"  style="--img:url('https://i.postimg.cc/vxbYftSh/04.jpg')"></div>
+          <div class="spiral-card sc-5"  style="--img:url('https://i.postimg.cc/dZwsrjSm/05.jpg')"></div>
+          <div class="spiral-card sc-6"  style="--img:url('https://i.postimg.cc/vxbYftSv/06.jpg')"></div>
+          <div class="spiral-card sc-7"  style="--img:url('https://i.postimg.cc/XB4jdkDZ/07.jpg')"></div>
+          <div class="spiral-card sc-8"  style="--img:url('https://i.postimg.cc/H8zp28f4/01.png')"></div>
+          <div class="spiral-card sc-9"  style="--img:url('https://i.postimg.cc/Fkp9Zk2y/02.jpg')"></div>
+          <div class="spiral-card sc-10" style="--img:url('https://i.postimg.cc/YLMrYzy3/03.jpg')"></div>
+          <div class="spiral-card sc-11" style="--img:url('https://i.postimg.cc/vxbYftSh/04.jpg')"></div>
+          <div class="spiral-card sc-12" style="--img:url('https://i.postimg.cc/dZwsrjSm/05.jpg')"></div>
+          <div class="spiral-card sc-13" style="--img:url('https://i.postimg.cc/vxbYftSv/06.jpg')"></div>
+          <div class="spiral-card sc-14" style="--img:url('https://i.postimg.cc/XB4jdkDZ/07.jpg')"></div>
+          <div class="spiral-card sc-15" style="--img:url('https://i.postimg.cc/H8zp28f4/01.png')"></div>
+          <div class="spiral-card sc-16" style="--img:url('https://i.postimg.cc/Fkp9Zk2y/02.jpg')"></div>
+          <div class="spiral-card sc-17" style="--img:url('https://i.postimg.cc/YLMrYzy3/03.jpg')"></div>
+          <div class="spiral-card sc-18" style="--img:url('https://i.postimg.cc/vxbYftSh/04.jpg')"></div>
+          <div class="spiral-card sc-19" style="--img:url('https://i.postimg.cc/dZwsrjSm/05.jpg')"></div>
+          <div class="spiral-card sc-20" style="--img:url('https://i.postimg.cc/vxbYftSv/06.jpg')"></div>
+          <div class="spiral-card sc-21" style="--img:url('https://i.postimg.cc/XB4jdkDZ/07.jpg')"></div>
+          <div class="spiral-card sc-22" style="--img:url('https://i.postimg.cc/H8zp28f4/01.png')"></div>
+          <div class="spiral-card sc-23" style="--img:url('https://i.postimg.cc/Fkp9Zk2y/02.jpg')"></div>
+          <div class="spiral-card sc-24" style="--img:url('https://i.postimg.cc/YLMrYzy3/03.jpg')"></div>
+          <div class="spiral-card sc-25" style="--img:url('https://i.postimg.cc/vxbYftSh/04.jpg')"></div>
+          <div class="spiral-card sc-26" style="--img:url('https://i.postimg.cc/dZwsrjSm/05.jpg')"></div>
+          <div class="spiral-card sc-27" style="--img:url('https://i.postimg.cc/vxbYftSv/06.jpg')"></div>
+          <div class="spiral-card sc-28" style="--img:url('https://i.postimg.cc/XB4jdkDZ/07.jpg')"></div>
+          <div class="spiral-card sc-29" style="--img:url('https://i.postimg.cc/H8zp28f4/01.png')"></div>
+          <div class="spiral-card sc-30" style="--img:url('https://i.postimg.cc/Fkp9Zk2y/02.jpg')"></div>
+          <div class="spiral-card sc-31" style="--img:url('https://i.postimg.cc/YLMrYzy3/03.jpg')"></div>
+          <div class="spiral-card sc-32" style="--img:url('https://i.postimg.cc/vxbYftSh/04.jpg')"></div>
+          <div class="spiral-card sc-33" style="--img:url('https://i.postimg.cc/dZwsrjSm/05.jpg')"></div>
+          <div class="spiral-card sc-34" style="--img:url('https://i.postimg.cc/vxbYftSv/06.jpg')"></div>
+          <div class="spiral-card sc-35" style="--img:url('https://i.postimg.cc/XB4jdkDZ/07.jpg')"></div>
+          <div class="spiral-card sc-36" style="--img:url('https://i.postimg.cc/H8zp28f4/01.png')"></div>
+          <div class="spiral-card sc-37" style="--img:url('https://i.postimg.cc/Fkp9Zk2y/02.jpg')"></div>
+          <div class="spiral-card sc-38" style="--img:url('https://i.postimg.cc/YLMrYzy3/03.jpg')"></div>
+          <div class="spiral-card sc-39" style="--img:url('https://i.postimg.cc/vxbYftSh/04.jpg')"></div>
+          <div class="spiral-card sc-40" style="--img:url('https://i.postimg.cc/dZwsrjSm/05.jpg')"></div>
+          <div class="spiral-card sc-41" style="--img:url('https://i.postimg.cc/vxbYftSv/06.jpg')"></div>
+          <div class="spiral-card sc-42" style="--img:url('https://i.postimg.cc/XB4jdkDZ/07.jpg')"></div>
+        </div>
+      </div>
+
+      <div class="intro-text">
+        <h1 class="headline">
+          <span class="line headline-main">JSWU WORK DESIGN</span>
+          <span class="line headline-sub">Entering the world of Jswu</span>
+        </h1>
+
+        <button id="enterBtn" class="enter-btn" aria-label="进入作品集">
+          <span class="btn-text">CLICK ME</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 底部信息条 -->
+    <footer class="intro-bottom">
+      <div class="bot-col bot-left">
+        <span class="dim">LOC</span>&nbsp;SHENZHEN&nbsp;·&nbsp;CN
+      </div>
+      <div class="bot-col bot-center">
+        <div class="bot-marquee">
+          <div class="bot-track">
+            <span>◆ DESIGN</span><span>◆ CODE</span><span>◆ MOTION</span><span>◆ BRAND</span><span>◆ AI</span><span>◆ CURIOSITY</span>
+            <span>◆ DESIGN</span><span>◆ CODE</span><span>◆ MOTION</span><span>◆ BRAND</span><span>◆ AI</span><span>◆ CURIOSITY</span>
+          </div>
+        </div>
+      </div>
+      <div class="bot-col bot-right">
+        <span class="dim">TIME</span>&nbsp;<span id="introClock">--:--:--</span>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ====== 作品集页 ====== -->
+  <section id="portfolio" class="portfolio" aria-label="作品集" hidden>
+    <header class="port-nav">
+      <a href="#" class="logo logo-personal" aria-label="Jswu">
+        <img class="logo-img" src="https://i.postimg.cc/rsTVVbm2/logo.png" alt="Jswu Logo" />
+      </a>
+      <nav class="nav-links">
+        <a href="#" id="navHome">Home</a>
+        <a href="#work" class="active">Work</a>
+      </nav>
+      <button id="backBtn" class="back-btn liquid-glass" aria-label="返回">← Back</button>
+    </header>
+
+    <!-- ====== 作品集 hero（大字 + 缩略图坠落动画） ====== -->
+    <div class="port-banner">
+      <h2 class="big-title" aria-label="JSWU DESIGN SPACE">
+        <span class="big-row big-row-1">
+          <span class="word word-l">
+            <img class="word-img" src="https://i.postimg.cc/XvYqCXwq/zuo-shang.png" alt="JS" />
+          </span>
+          <span class="word-gap" aria-hidden="true"></span>
+          <span class="word word-r">
+            <img class="word-img" src="https://i.postimg.cc/Twjsv24f/you-shang.png" alt="WU" />
+          </span>
+        </span>
+        <!-- 缩略图堆叠：从上方坠落（4 张，对称递增角度） -->
+        <div class="thumb-stack" aria-hidden="true">
+          <div class="ts-card ts-1" style="--img:url('https://i.postimg.cc/TwJwDGBg/04.jpg')"></div>
+          <div class="ts-card ts-2" style="--img:url('https://i.postimg.cc/qRVhK1RW/01.png')"></div>
+          <div class="ts-card ts-3" style="--img:url('https://i.postimg.cc/nccsqjFc/02.jpg')"></div>
+          <div class="ts-card ts-4" style="--img:url('https://i.postimg.cc/4xjmCWzg/03.jpg')"></div>
+        </div>
+        <span class="big-row big-row-2">
+          <span class="word word-l">
+            <img class="word-img" src="https://i.postimg.cc/T1GZK5Dn/zuo-xia.png" alt="DESIGN" />
+          </span>
+          <span class="word-gap" aria-hidden="true"></span>
+          <span class="word word-r">
+            <img class="word-img" src="https://i.postimg.cc/dtNxYx4r/you-xia.png" alt="SPACE" />
+          </span>
+        </span>
+      </h2>
+      <p class="hero-tagline">
+        <span>AI浪潮之下，思考与判断力是锚，让我们不随波逐流；想象与执行力是桨，让我们真正抵达彼岸。</span>
+        <span>前者愈发稀缺，后者决定高度。</span>
+      </p>
+    </div>
+
+    <!-- 首屏 hero（双栏布局）已移除：直接进入作品轮播 + 卡片 -->
+
+    <!-- 滚动逐字渐显 + 行内图片在屏幕中线时撑开（一整段，浏览器自然换行） -->
+    <section class="scroll-reveal" aria-label="时代宣言">
+      <p class="sr-text">
+        <span class="srw">THINKING</span>
+        <span class="srw">AND</span>
+        <span class="sr-img sr-img-a" aria-hidden="true">🧠</span>
+        <span class="srw">JUDGMENT</span>
+        <span class="srw">BECOME</span>
+        <span class="srw">INCREASINGLY</span>
+        <span class="srw">IRREPLACEABLE</span>
+        <span class="srw">IN</span>
+        <span class="sr-img sr-img-b" aria-hidden="true">🌊</span>
+        <span class="srw">THE</span>
+        <span class="srw">TIDE,</span>
+        <span class="srw">AND</span>
+        <span class="srw">UNPARALLELED</span>
+        <span class="sr-img sr-img-c" aria-hidden="true">✨</span>
+        <span class="srw">IMAGINATION</span>
+        <span class="srw">AND</span>
+        <span class="srw">EXECUTION</span>
+        <span class="srw">ARE</span>
+        <span class="sr-img sr-img-d" aria-hidden="true">⚡</span>
+        <span class="srw">THE</span>
+        <span class="srw">CORE</span>
+        <span class="srw">OF</span>
+        <span class="srw">PEOPLE</span>
+        <span class="srw">IN</span>
+        <span class="srw">THE</span>
+        <span class="sr-img sr-img-e" aria-hidden="true">🤖</span>
+        <span class="srw">ERA</span>
+        <span class="srw">OF</span>
+        <span class="srw">AI</span>
+      </p>
+      <p class="sr-sub">
+        <span class="sr-sub-line">浪潮中思考与判断力愈发不可替代</span>
+        <span class="sr-sub-line">无比的想象力和执行力才是Ai时代的人的核心</span>
+      </p>
+    </section>
+
+    <!-- 作品卡片网格 -->
+    <div class="works" id="work">
+      <div class="works-head">
+        <img class="works-title-img" src="./assets/works-title.png" alt="Featured Projects" />
+      </div>
+      <div class="cards">
+        <article class="card" data-project="aether" data-chip-label="Creative Visuals" data-chip-tone="green" data-chip-icon="🖼️" data-en-period="Second Half of 2025" data-en-title="Creative Visual Practice" data-cn-title="创意视觉" data-cn-sub="AI 时代下技术赋能与视觉表达的融合实践探索" style="--c1:#ff6b6b;--c2:#feca57">
+          <div class="card-thumb"><div class="card-art art-1" style="--img:url('https://i.postimg.cc/N0pv7XKr/01.jpg')"></div></div>
+          <div class="card-info">
+            <div class="card-row"><h4>2025 年下半年</h4></div>
+            <p>Next-gen operating system interface for spatial computing.</p>
+            <div class="tags"><span>UI/UX</span><span>System</span><span>Motion</span></div>
+          </div>
+        </article>
+
+        <article class="card" data-project="lumen" data-chip-label="Form Design" data-chip-tone="pink" data-chip-icon="🎨" data-en-period="First Half of 2025" data-en-title="Form & Composition Study" data-cn-title="构成设计" data-cn-sub="极简形态下的点线面与多元视觉的研究" style="--c1:#5f27cd;--c2:#48dbfb">
+          <div class="card-thumb"><div class="card-art art-2" style="--img:url('https://i.postimg.cc/x8frgzpF/02.jpg')"></div></div>
+          <div class="card-info">
+            <div class="card-row"><h4>2025 年上半年</h4></div>
+            <p>A luminous identity system for an AI lighting startup.</p>
+            <div class="tags"><span>Branding</span><span>Identity</span></div>
+          </div>
+        </article>
+
+        <article class="card" data-project="nova" data-chip-label="IP scenario" data-chip-tone="teal" data-chip-icon="🐣" data-en-period="Second Half of 2024" data-en-title="IP & Scene Exploration" data-cn-title="IP及场景" data-cn-sub="一些 IP 服化道的设计和场景的探究与融合" style="--c1:#48dbfb;--c2:#54a0ff">
+          <div class="card-thumb"><div class="card-art art-3" style="--img:url('https://i.postimg.cc/nL4w5LDw/03.jpg')"></div></div>
+          <div class="card-info">
+            <div class="card-row"><h4>2024 年下半年</h4></div>
+            <p>Re-imagining mobile payments with playful interactions.</p>
+            <div class="tags"><span>Fintech</span><span>Mobile</span></div>
+          </div>
+        </article>
+
+        <article class="card" data-project="echo" data-chip-label="Waterfall Collection" data-chip-tone="lime" data-chip-icon="📋" data-en-period="First Half of 2024" data-en-title="Selected Works Archive" data-cn-title="工作项目" data-cn-sub="2019-2026 设计工作轨迹，走过一些弯路依旧保持 passion" style="--c1:#ee5253;--c2:#ff9ff3">
+          <div class="card-thumb"><div class="card-art art-4" style="--img:url('https://i.postimg.cc/c4P9L3Ms/04.jpg')"></div></div>
+          <div class="card-info">
+            <div class="card-row"><h4>2024 年上半年</h4></div>
+            <p>An immersive music player that visualizes sound in real time.</p>
+            <div class="tags"><span>Audio</span><span>WebGL</span></div>
+          </div>
+        </article>
+
+        <article class="card" data-project="drift" data-chip-label="Dynamic vision" data-chip-tone="violet" data-chip-icon="✨" data-en-period="Second Half of 2023" data-en-title="Motion Visual Lab" data-cn-title="动态视觉" data-cn-sub="AI 时代下的各类动态视觉的探索" style="--c1:#0984e3;--c2:#222f3e">
+          <div class="card-thumb"><div class="card-art art-5" style="--img:url('https://i.postimg.cc/63HzJ45f/05.jpg')"></div></div>
+          <div class="card-info">
+            <div class="card-row"><h4>2023 年下半年</h4></div>
+            <p>Portfolio site for a creative studio with kinetic typography.</p>
+            <div class="tags"><span>Web</span><span>Typography</span></div>
+          </div>
+        </article>
+
+        <article class="card" data-project="mono" data-chip-label="Beyond Design" data-chip-tone="purple" data-chip-icon="🏷️" data-en-period="First Half of 2023" data-en-title="Beyond the Canvas" data-cn-title="设计之外" data-cn-sub="记录设计之外的观察、新时代 AI 技术探索。" style="--c1:#f368e0;--c2:#341f97">
+          <div class="card-thumb"><div class="card-art art-6" style="--img:url('https://i.postimg.cc/bwXghhpy/06.jpg')"></div></div>
+          <div class="card-info">
+            <div class="card-row"><h4>2023 年上半年</h4></div>
+            <p>A variable typeface designed for code editors and terminals.</p>
+            <div class="tags"><span>Type</span><span>OSS</span></div>
+          </div>
+        </article>
+
+        <article class="card" data-project="glacier" data-chip-label="Glacier" data-chip-tone="blue" data-chip-icon="❄️" data-en-period="2022 Year-End Recap" data-en-title="Frosted Glass UI" data-cn-title="玻璃质感" data-cn-sub="毛玻璃质感的 UI 探索：透明、模糊与冷光层叠。" style="--c1:#ff9f43;--c2:#ee5253">
+          <div class="card-thumb"><div class="card-art art-7" style="--img:url('https://i.postimg.cc/d10mBQm8/07.jpg')"></div></div>
+          <div class="card-info">
+            <div class="card-row"><h4>2022 年终总结</h4></div>
+            <p>A frosted, glass-morphic UI kit for crypto dashboards.</p>
+            <div class="tags"><span>Design Sys</span><span>Crypto</span></div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+
+    <footer class="port-foot">
+      <div>© 2026 JSWU STUDIO — Designed & built with care.</div>
+      <div class="dim">Scroll back to top ↑</div>
+    </footer>
+  </section>
+
+  <!-- ====== 作品集二级详情页 ====== -->
+  <section id="project" class="project-detail" hidden aria-label="作品集详情">
+    <!-- 顶部返回入口 -->
+    <header class="pd-top">
+      <a href="#work" class="pd-back liquid-glass" id="pdBack" aria-label="返回作品目录"><span class="pd-back-icon">←</span> 返回作品目录</a>
+    </header>
+
+    <!-- 项目头部信息 -->
+    <div class="pd-hero">
+      <h1 class="pd-title" id="pdTitle">Second Half of 2025</h1>
+      <h2 class="pd-title-cn" id="pdTitleCn">2025 年下半年</h2>
+      <p class="pd-sub" id="pdSub">Creative Visual Practice</p>
+      <div class="pd-tags" id="pdTags"></div>
+    </div>
+
+    <!-- 项目相关照片网格 -->
+    <div class="pd-gallery" id="pdGallery">
+      <!-- JS 注入 -->
+    </div>
+
+    <!-- 底部"继续预览"模块 —— 标题结构对齐 hero：英文大标题 + 中文中标题 + 灰色小字 hint -->
+    <div class="pd-continue">
+      <div class="pd-continue-head">
+        <h2 class="pd-continue-title">YOU MIGHT ALSO <span class="pd-title-accent">LIKE</span></h2>
+        <h3 class="pd-continue-title-cn">猜你想看</h3>
+        <p class="pd-continue-hint">浏览其他 6 个作品集项目</p>
+      </div>
+      <div class="pd-continue-grid" id="pdContinueGrid">
+        <!-- JS 注入 6 个其他项目入口 -->
+      </div>
+    </div>
+
+    <footer class="port-foot pd-foot">
+      <div>© 2026 JSWU STUDIO — Designed & built with care.</div>
+      <div class="dim">Scroll back to top ↑</div>
+    </footer>
+  </section>
+
+  <!-- 图片预览 lightbox（点击 .pd-photo 打开） -->
+  <!-- 液态玻璃 SVG filter（被 .lb-toolbar 的 backdrop-filter 引用，必须在 #lightbox 外部以免被 hidden 影响渲染） -->
+  <svg class="lb-glass-defs" aria-hidden="true" focusable="false" width="0" height="0">
+    <defs>
+      <filter id="lb-glass-filter" colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">
+        <feImage id="lbGlassMap" x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" />
+        <feDisplacementMap id="lbGlassR" in="SourceGraphic" in2="map" scale="-180" xChannelSelector="R" yChannelSelector="G" result="dispRed" />
+        <feColorMatrix in="dispRed" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red" />
+        <feDisplacementMap id="lbGlassG" in="SourceGraphic" in2="map" scale="-170" xChannelSelector="R" yChannelSelector="G" result="dispGreen" />
+        <feColorMatrix in="dispGreen" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green" />
+        <feDisplacementMap id="lbGlassB" in="SourceGraphic" in2="map" scale="-160" xChannelSelector="R" yChannelSelector="G" result="dispBlue" />
+        <feColorMatrix in="dispBlue" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue" />
+        <feBlend in="red" in2="green" mode="screen" result="rg" />
+        <feBlend in="rg" in2="blue" mode="screen" result="output" />
+        <feGaussianBlur id="lbGlassBlur" in="output" stdDeviation="0.7" />
+      </filter>
+    </defs>
+  </svg>
+  <div class="lb" id="lightbox" hidden aria-hidden="true">
+    <button class="lb-close liquid-glass" id="lbClose" aria-label="关闭预览">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <path d="M5 5 L15 15 M15 5 L5 15" />
+      </svg>
+    </button>
+    <div class="lb-stage" id="lbStage">
+      <img class="lb-img" id="lbImg" alt="" draggable="false" />
+    </div>
+    <div class="lb-toolbar liquid-glass" role="toolbar" aria-label="预览工具栏">
+      <button class="lb-tool lb-tool-icon" id="lbPrev" aria-label="上一张" title="上一张">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 3 L5 8 L10 13" />
+        </svg>
+      </button>
+      <span class="lb-sep" aria-hidden="true"></span>
+      <button class="lb-tool lb-tool-text" id="lbZoomOut" aria-label="缩小">缩小</button>
+      <button class="lb-tool lb-tool-text" id="lbCenter" aria-label="居中">居中</button>
+      <span class="lb-pct" id="lbPct">100%</span>
+      <button class="lb-tool lb-tool-text" id="lbZoomIn" aria-label="放大">放大</button>
+      <span class="lb-sep" aria-hidden="true"></span>
+      <button class="lb-tool lb-tool-icon" id="lbNext" aria-label="下一张" title="下一张">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 3 L11 8 L6 13" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="./app.js?v=82"></script>
+</body>
+</html>
