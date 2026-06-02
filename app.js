@@ -216,15 +216,22 @@ function startWordWipe() {
 }
 
 let _entering = false;
+// 按钮按下态白色填充显现的保持时长(ms)：让用户先看清"按钮变填充"的点击反馈，再开始退场模糊。
+// 必须 ≥ 按下态过渡时长(CSS 0.12s)，否则白色还没铺满就被模糊盖掉（移动端尤其明显）。
+const PRESS_HOLD = 180;
 function enterPortfolio() {
   if (_entering) return;      // 防重入：pointerdown/click 双触发或多次点击只生效一次
   _entering = true;
-  // 立即给按钮加按下态（变白），保证移动端 pointerdown 后能看到白色反馈
+  // 立即给按钮加按下态（变白填充），保证移动端 pointerdown 后能看到白色反馈
   if (enterBtn) enterBtn.classList.add('is-pressed');
-  // 立即开始 intro 退场动画：中心文字放大+模糊 与 螺旋背景渐隐 同步执行（0~0.55s）
-  intro.classList.add('exiting');
-  // 等动画基本播完（约 0.55s）后再切换到作品集主页
-  setTimeout(doEnterPortfolio, 600);
+  // 先让白色填充显现 PRESS_HOLD 毫秒，再开始 intro 退场动画
+  //（避免按钮变白与文字模糊同帧触发 → 手机上看不到按下填充态）
+  setTimeout(() => {
+    // 中心文字放大+模糊 与 螺旋背景渐隐 同步执行（0~0.55s）
+    intro.classList.add('exiting');
+    // 等动画基本播完（约 0.55s）后再切换到作品集主页
+    setTimeout(doEnterPortfolio, 600);
+  }, PRESS_HOLD);
 }
 function doEnterPortfolio() {
   intro.hidden = true;
