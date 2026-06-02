@@ -1577,13 +1577,23 @@ a { color: inherit; text-decoration: none; }
 .intro.exiting {
   pointer-events: none;
 }
-/* 中心文字放大 + 模糊 + 渐隐（transform-origin 默认 center，从中心放大） */
+/* 中心文字放大 + 模糊 + 渐隐（transform-origin 默认 center，从中心放大）
+   iOS Safari 修复：①必须显式 from{filter:blur(0)}，否则 none→blur(16px) 不插值会直接跳变（桌面 Chrome 会把 none 当 blur(0) 但 iOS 不会）
+   ②补 -webkit- 前缀 ③translateZ(0)/will-change 提前建立 GPU 合成层，否则 iOS 上 blur 动画可能整段不渲染 */
 .intro.exiting .intro-text {
+  will-change: transform, filter, opacity;
   animation: introTextBlur 0.55s cubic-bezier(.4, 0, .2, 1) forwards;
 }
 @keyframes introTextBlur {
+  from {
+    transform: scale(1) translateZ(0);
+    -webkit-filter: blur(0);
+    filter: blur(0);
+    opacity: 1;
+  }
   to {
-    transform: scale(1.45);
+    transform: scale(1.45) translateZ(0);
+    -webkit-filter: blur(16px);
     filter: blur(16px);
     opacity: 0;
   }
