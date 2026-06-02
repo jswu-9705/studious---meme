@@ -221,10 +221,10 @@ function enterPortfolio() {
   _entering = true;
   // 立即给按钮加按下态（变白），保证移动端 pointerdown 后能看到白色反馈
   if (enterBtn) enterBtn.classList.add('is-pressed');
-  // 立即开始 intro 淡出动画（保留淡出过渡效果）
+  // 立即开始 intro 退场动画：中心文字放大+模糊 与 螺旋背景渐隐 同步执行（0~0.55s）
   intro.classList.add('exiting');
-  // 等淡出动画播放（260ms）后再切换到作品集页 —— 淡出可见但很快
-  setTimeout(doEnterPortfolio, 260);
+  // 等动画基本播完（约 0.55s）后再切换到作品集主页
+  setTimeout(doEnterPortfolio, 600);
 }
 function doEnterPortfolio() {
   intro.hidden = true;

@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+._*
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Local server
+.cache/
+
+# GitHub Actions workflow（token 无 workflow scope，改用 Pages root 部署）
+.github/

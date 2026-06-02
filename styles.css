@@ -1569,15 +1569,47 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink-dim);
 }
 
-/* 切换动画 */
+/* 切换动画 v3：中心文字与螺旋背景同步退场
+   中心文字 .intro-text（含大标题 + CLICK ME 按钮）放大 + 模糊 + 渐隐，
+   同时螺旋图片背景 .spiral-gallery 渐隐外扩，二者一起开始一起结束（0 ~ 0.55s）
+   其余装饰层（顶部条/底部条/星点/浮词/网格/角标/光晕）也同步淡出
+   JS 在约 600ms 后切换到作品集主页（见 app.js doEnterPortfolio 调度） */
 .intro.exiting {
-  animation: introExit 0.26s var(--easing) forwards;
+  pointer-events: none;
 }
-@keyframes introExit {
+/* 中心文字放大 + 模糊 + 渐隐（transform-origin 默认 center，从中心放大） */
+.intro.exiting .intro-text {
+  animation: introTextBlur 0.55s cubic-bezier(.4, 0, .2, 1) forwards;
+}
+@keyframes introTextBlur {
+  to {
+    transform: scale(1.45);
+    filter: blur(16px);
+    opacity: 0;
+  }
+}
+/* 螺旋图片背景渐隐消失（与文字同步，无延迟） */
+.intro.exiting .spiral-gallery {
+  animation: introSpiralFade 0.55s cubic-bezier(.4, 0, .2, 1) forwards;
+}
+@keyframes introSpiralFade {
   to {
     opacity: 0;
-    transform: scale(1.04);
+    transform: translate(-50%, -50%) scale(1.12);
   }
+}
+/* 其余装饰层同步淡出 */
+.intro.exiting .intro-top,
+.intro.exiting .intro-bottom,
+.intro.exiting .ambient,
+.intro.exiting .stars,
+.intro.exiting .floaters,
+.intro.exiting .grid-faint,
+.intro.exiting .tick {
+  animation: introDecoFade 0.5s ease forwards;
+}
+@keyframes introDecoFade {
+  to { opacity: 0; }
 }
 /* 作品集页进入：不再做整页淡入动画（避免淡出后还要再等 0.5s 淡入的"停顿感"）。
    淡出结束即直接呈现完整主页，页内的大字揭幕/缩略图坠落等动效照常由 JS 触发。 */
