@@ -261,8 +261,6 @@ function doEnterPortfolio() {
     portfolio.classList.remove('entering');
     portfolio.classList.add('entered-done');
   }, 1100);
-  // 启动背景音乐（此处由 CLICK ME 的用户手势链触发，浏览器允许自动播放）
-  startBgm();
 }
 
 function backToIntro() {
@@ -278,60 +276,12 @@ function backToIntro() {
   intro.classList.remove('exiting');
   document.body.classList.remove('portfolio-active');
   window.scrollTo({ top: 0, behavior: 'instant' });
-  // 返回入场页：暂停背景音乐（再次进入时会从头/续播）
-  pauseBgm();
 }
 
 // 用 pointerdown 替代 click：消除移动端 ~300ms 点击延迟，按下即响应。
 // pointerdown 同时覆盖鼠标/触屏/触控笔；配合 enterPortfolio 内部 _entering 锁防重复触发。
 enterBtn.addEventListener('pointerdown', enterPortfolio);
 backBtn.addEventListener('click', backToIntro);
-
-// ====== 背景音乐控制 ======
-// 进入作品集页时播放（由 CLICK ME 手势触发，绕过自动播放限制）；
-// 导航栏喇叭按钮切换静音；静音状态用 localStorage 记忆，刷新/再次进入保持。
-const bgm = document.getElementById('bgm');
-const muteBtn = document.getElementById('muteBtn');
-const BGM_MUTE_KEY = 'jswu_bgm_muted';
-
-// 读取记忆的静音状态（默认不静音 = 有声）
-function isBgmMuted() {
-  return localStorage.getItem(BGM_MUTE_KEY) === '1';
-}
-// 同步按钮 UI 与 audio.muted 到当前记忆状态
-function syncMuteUI() {
-  const muted = isBgmMuted();
-  if (bgm) bgm.muted = muted;
-  if (muteBtn) {
-    muteBtn.classList.toggle('is-muted', muted);
-    muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false');
-  }
-}
-function startBgm() {
-  if (!bgm) return;
-  bgm.muted = isBgmMuted();   // 进入时按记忆状态决定是否静音
-  syncMuteUI();
-  const p = bgm.play();
-  // 个别浏览器仍可能拒绝（如已被系统静音策略拦截）；静默兜底，等用户点喇叭再试
-  if (p && typeof p.catch === 'function') p.catch(() => {});
-}
-function pauseBgm() {
-  if (bgm) bgm.pause();
-}
-// 喇叭按钮：切换静音 / 取消静音
-function toggleMute() {
-  const next = !isBgmMuted();
-  localStorage.setItem(BGM_MUTE_KEY, next ? '1' : '0');
-  syncMuteUI();
-  // 若从静音切到有声、且此刻在作品集页但音乐没在放，则补一次播放
-  if (!next && bgm && bgm.paused && !portfolio.hidden) {
-    const p = bgm.play();
-    if (p && typeof p.catch === 'function') p.catch(() => {});
-  }
-}
-if (muteBtn) muteBtn.addEventListener('click', toggleMute);
-// 页面加载时先把按钮 UI 同步成记忆状态（即使还没进入作品集页）
-syncMuteUI();
 
 // ====== 顶部导航三个 tab：Home / Text / Work ======
 // Home → 作品集页顶部；Text → 中间逐字宣言；Work → 作品网格标题
